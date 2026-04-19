@@ -1,0 +1,35 @@
+{
+  "model": "claude-3-5-sonnet",
+
+  "generation": {
+    "maxTokens": 2000,
+    "temperature": 0.2
+  },
+
+  "mcpServers": {
+    "gdrive": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-google-drive"]
+    }
+  },
+
+  "subagents": {
+    "autoInvoke": true
+  },
+
+  "tools": {
+    "allow": [
+      "read_file",
+      "search",
+      "mcp"
+    ]
+  },
+
+  "context": {
+    "maxFiles": 20
+  },
+
+  "logging": {
+    "level": "info"
+  }
+}

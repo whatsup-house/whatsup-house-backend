@@ -185,34 +185,17 @@ Soft Delete:
 * Gathering
 * Application
 * Location
----
-
-## 추가 코딩 컨벤션
-
-### Service
-
-- Service 계층에는 기본적으로 @Transactional을 적용한다.
-- 조회 전용 메서드는 필요 시 readOnly = true를 고려한다.
 
 ---
 
-### DTO
+## 10. Git 브랜치 전략
 
-- DTO는 일반 클래스를 사용한다.
-- record 사용은 지양한다.
+* `main` — 운영 브랜치. develop에서만 머지.
+* `develop` — 개발 브랜치. 기능 브랜치의 머지 대상.
+* `feat/{domain}` — 기능 브랜치. develop에서 분기하고 develop으로 머지.
 
----
+흐름: `feat/*` → `develop` → `main`
 
-### Lombok
+## 11. Git 커밋 규칙
 
-- Lombok 사용을 기본으로 한다.
-
-사용 권장:
-
-- @Getter
-- @Builder
-- @RequiredArgsConstructor
-
-지양:
-
-- 불필요한 @Setter 남용
+* 커밋 메시지에 AI 활용 관련 내용을 포함하지 않는다. (Co-Authored-By 등 금지)

@@ -17,14 +17,17 @@ public class JwtTokenProvider {
 
     private final SecretKey signingKey;
     private final long expiration;
+    private final long refreshExpiration;
 
     public JwtTokenProvider(@Value("${jwt.secret}") String secret,
-                            @Value("${jwt.expiration}") long expiration) {
+                            @Value("${jwt.expiration}") long expiration,
+                            @Value("${jwt.refresh-expiration}") long refreshExpiration) {
         this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expiration = expiration;
+        this.refreshExpiration = refreshExpiration;
     }
 
-    public String generateToken(UserPrincipal principal) {
+    public String generateAccessToken(UserPrincipal principal) {
         return Jwts.builder()
                 .subject(principal.getUserId().toString())
                 .claim("email", principal.getEmail())
@@ -35,6 +38,19 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    public String generateRefreshToken(UUID userId) {
+        return Jwts.builder()
+                .subject(userId.toString())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + refreshExpiration))
+                .signWith(signingKey)
+                .compact();
+    }
+
+    public long getRefreshExpiration() {
+        return refreshExpiration;
+    }
+
     public boolean validateToken(String token) {
         try {
             Jwts.parser().verifyWith(signingKey).build().parseSignedClaims(token);
@@ -42,6 +58,15 @@ public class JwtTokenProvider {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
+    }
+
+    public UUID getUserIdFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(signingKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        return UUID.fromString(claims.getSubject());
     }
 
     public UserPrincipal getUserPrincipal(String token) {

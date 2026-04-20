@@ -17,9 +17,19 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+logging:
+  level:
+    root: WARN
+    com.whatsuphouse: INFO
+
 jwt:
   secret: ${JWT_SECRET}
-  expiration: 86400000
+  expiration: 3600000
   refresh-expiration: 604800000
 
 springdoc:

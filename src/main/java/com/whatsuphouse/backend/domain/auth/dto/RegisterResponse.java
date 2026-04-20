@@ -1,4 +1,4 @@
-package com.whatsuphouse.backend.domain.user.dto;
+package com.whatsuphouse.backend.domain.auth.dto;
 
 import com.whatsuphouse.backend.domain.user.entity.User;
 import lombok.Builder;
@@ -9,22 +9,18 @@ import java.util.UUID;
 
 @Getter
 @Builder
-public class ProfileResponse {
+public class RegisterResponse {
 
     private UUID id;
     private String email;
     private String nickname;
-    private String phone;
-    private boolean isAdmin;
     private LocalDateTime createdAt;
 
-    public static ProfileResponse from(User user) {
-        return ProfileResponse.builder()
+    public static RegisterResponse from(User user) {
+        return RegisterResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .nickname(user.getNickname())
-                .phone(user.getPhone())
-                .isAdmin(user.isAdmin())
                 .createdAt(user.getCreatedAt())
                 .build();
     }

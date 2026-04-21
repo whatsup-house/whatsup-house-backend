@@ -16,6 +16,14 @@
 
 ## 실행 순서
 
+### 0단계 — 사전 연결 체크
+
+작업 시작 전, 아래 두 MCP 연결 상태를 먼저 확인한다:
+- Google Drive MCP: `search_files`로 테스트 조회
+- Jira MCP: `GET /rest/api/3/myself` 조회
+
+⚠️ 하나라도 실패하면 즉시 사용자에게 보고하고 중단한다. 연결이 확인된 후에만 다음 단계로 진행한다.
+
 ### 1단계 — 문서 읽기 (spec-reader)
 
 `.claude/agent/spec-reader.md` 역할을 수행한다.
@@ -37,7 +45,13 @@
 
 ### 3단계 — 브랜치 생성
 
-생성된 이슈키와 도메인 코드를 기반으로 브랜치를 만들고 체크아웃한다.
+develop 브랜치를 최신화한 후 분기한다:
+
+```bash
+git checkout develop
+git pull origin develop
+git checkout -b feature/KAN-{번호}-{도메인}-{설명}
+```
 
 브랜치 컨벤션:
 ```
@@ -46,16 +60,12 @@
 - 타입: `feature`(신규), `fix`(버그), `refactor`(리팩토링)
 - 도메인코드: `auth` `usr` `gth` `app` `loc` `adm`
 
-```bash
-git checkout -b feature/KAN-{번호}-{도메인}-{설명}
-```
-
 ### 4단계 — 코드 구현 (create-api)
 
 `.claude/agent/create-api.md` 역할을 수행한다.
 
+- 구현 전, 동일/인접 도메인의 기존 코드를 읽어 스타일과 패턴을 파악한 후 그대로 따른다
 - `.claude/rules/backend/api.md`, `.claude/rules/backend/jpa.md` 규칙을 준수한다
-- 기존 유사 도메인 코드 스타일을 참고한다
 - 생성 순서: Entity → Repository → DTO → Service → Controller
 - 이미 구현된 코드가 있으면 규칙 위반 여부만 확인한다
 

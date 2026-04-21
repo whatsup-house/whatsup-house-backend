@@ -39,8 +39,7 @@ public class UserService {
     }
 
     public User findActiveUser(UUID userId) {
-        return userRepository.findById(userId)
-                .filter(u -> u.getDeletedAt() == null)
+        return userRepository.findByIdAndDeletedAtIsNull(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 }

@@ -18,11 +18,17 @@
 
 ### 0단계 — 사전 연결 체크
 
-작업 시작 전, 아래 두 MCP 연결 상태를 먼저 확인한다:
+작업 시작 전, 아래 세 가지 연결 상태를 먼저 확인한다:
 - Google Drive MCP: `search_files`로 테스트 조회
-- Jira MCP: `GET /rest/api/3/myself` 조회
+- Jira MCP: `atlassianUserInfo`로 현재 사용자 조회
+- gh CLI: `gh auth status`로 GitHub 인증 확인
 
-⚠️ 하나라도 실패하면 즉시 사용자에게 보고하고 중단한다. 연결이 확인된 후에만 다음 단계로 진행한다.
+⚠️ 하나라도 실패하면 **즉시 작업을 중단**하고 사용자에게 아래 형식으로 보고한다:
+
+> "❌ [Google Drive MCP / Jira MCP / gh CLI] 연결이 확인되지 않아 작업을 중단합니다. 연결 상태를 확인 후 다시 실행해주세요."
+> gh CLI 미인증 시: "`gh auth login`으로 인증 후 다시 실행해주세요."
+
+**이후 단계(1~7단계)는 절대 진행하지 않는다.** 세 가지 모두 정상 응답이 확인된 후에만 1단계로 넘어간다.
 
 ### 1단계 — 문서 읽기 (spec-reader)
 
@@ -173,6 +179,17 @@ git checkout -b feature/KAN-{번호}-{도메인}-{설명}
 - Jira 이슈에 검토 결과 코멘트를 추가한다
 - 이슈 상태를 "완료"로 전환한다
 
+### 7단계 — 커밋 & 푸시 & PR 생성 (pr-creator)
+
+`.claude/agent/pr-creator.md` 역할을 수행한다.
+
+- 4단계에서 생성/수정한 파일을 명시적으로 `git add`한다 (`git add .` / `git add -A` 금지)
+- 커밋 메시지 컨벤션을 준수해 커밋한다 (브랜치 prefix 기준으로 타입 결정)
+- 브랜치를 origin에 push한다
+- `.github/PULL_REQUEST_TEMPLATE`을 기반으로 PR을 생성한다
+  - PR 개요: Controller 파일의 매핑 어노테이션을 읽어 API 목록 자동 작성
+  - Jira 링크: `[{issueKey}](https://whatsuphouse.atlassian.net/browse/{issueKey})` 형식
+
 ---
 
 ## 참고 agent
@@ -180,3 +197,4 @@ git checkout -b feature/KAN-{번호}-{도메인}-{설명}
 - `.claude/agent/spec-reader.md`
 - `.claude/agent/create-api.md`
 - `.claude/agent/backend-reviewer.md`
+- `.claude/agent/pr-creator.md`

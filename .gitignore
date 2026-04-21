@@ -44,3 +44,6 @@ application-prod.yml
 
 # 로그 파일
 logs
+
+# Claude Code 로컬 설정
+.claude/settings.local.json

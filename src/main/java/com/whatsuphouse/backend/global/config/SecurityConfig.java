@@ -50,6 +50,8 @@ public class SecurityConfig {
                         .requestMatchers(PERMIT_ALL).permitAll()
                         .requestMatchers(HttpMethod.GET, PERMIT_GET).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/gatherings/*/applications/guest").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/locations").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/locations/**").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll()

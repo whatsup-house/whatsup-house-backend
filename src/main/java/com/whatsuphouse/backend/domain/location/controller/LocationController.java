@@ -1,5 +1,16 @@
 package com.whatsuphouse.backend.domain.location.controller;
 
+import com.whatsuphouse.backend.domain.location.dto.LocationResponse;
+import com.whatsuphouse.backend.domain.location.service.LocationService;
+import com.whatsuphouse.backend.global.common.ApiResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
 import com.whatsuphouse.backend.domain.location.dto.LocationDetailResponse;
 import com.whatsuphouse.backend.domain.location.service.LocationService;
 import com.whatsuphouse.backend.global.common.ApiResult;
@@ -24,6 +35,9 @@ public class LocationController {
 
     private final LocationService locationService;
 
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<LocationResponse>>> getLocations() {
+        return ResponseEntity.ok(ApiResponse.success(locationService.getLocations()));
     @Operation(summary = "장소 상세 조회")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResult<LocationDetailResponse>> getLocation(

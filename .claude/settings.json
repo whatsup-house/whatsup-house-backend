@@ -12,18 +12,13 @@
     ],
     "deny": []
   },
+  "enabledMcpjsonServers": [
+    "atlassian"
+  ],
   "mcpServers": {
     "gdrive": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-google-drive"]
-    },
-    "atlassian": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote@latest",
-        "https://mcp.atlassian.com/v1/mcp"
-      ]
     }
   }
 }

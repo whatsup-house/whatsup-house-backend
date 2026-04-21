@@ -57,6 +57,10 @@ domain/{name}/
   - 관리자: `/api/admin/**`
   - 공개 조회: `GET /api/gatherings/**`
 - 예외는 `CustomException(ErrorCode)`, Controller에서 try-catch 금지
+- **Swagger 어노테이션 필수 적용** (`io.swagger.v3.oas.annotations` 패키지):
+  - 클래스: `@Tag(name = "도메인명(한글)", description = "API 그룹 설명")`
+  - 메서드: `@Operation(summary = "짧은 제목", description = "상세 설명")`
+  - Path/Query 파라미터: `@Parameter(description = "설명", example = "예시값")`
 
 ### Service (`CLAUDE.md` 참고)
 - `@Transactional` 기본 적용
@@ -76,6 +80,7 @@ domain/{name}/
 - Lombok: `@Getter`, `@Builder`, `@RequiredArgsConstructor`
 - Response DTO: `from(entity)` 패턴
 - Request DTO: 단순 생성만 `toEntity()` 허용, 복잡한 조합은 서비스에서 처리
+- **Swagger 어노테이션 필수 적용**: 각 필드에 `@Schema(description = "설명", example = "예시값")`
 
 ---
 

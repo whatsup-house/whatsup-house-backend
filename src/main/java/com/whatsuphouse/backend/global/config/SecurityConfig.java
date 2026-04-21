@@ -35,6 +35,7 @@ public class SecurityConfig {
     //GET 요청만 허용
     private static final String[] PERMIT_GET = {
         "/api/gatherings/**",
+        "/api/locations/**",
         "/api/users/check-nickname",
         "/api/users/check-email"
     };

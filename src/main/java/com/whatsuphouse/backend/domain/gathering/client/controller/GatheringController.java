@@ -1,9 +1,9 @@
-package com.whatsuphouse.backend.domain.gathering.controller;
+package com.whatsuphouse.backend.domain.gathering.client.controller;
 
-import com.whatsuphouse.backend.domain.gathering.dto.GatheringDetailResponse;
-import com.whatsuphouse.backend.domain.gathering.dto.GatheringResponse;
+import com.whatsuphouse.backend.domain.gathering.client.dto.GatheringDetailResponse;
+import com.whatsuphouse.backend.domain.gathering.client.dto.GatheringResponse;
+import com.whatsuphouse.backend.domain.gathering.client.service.GatheringService;
 import com.whatsuphouse.backend.domain.gathering.enums.GatheringStatus;
-import com.whatsuphouse.backend.domain.gathering.service.GatheringService;
 import com.whatsuphouse.backend.global.common.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -11,11 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -35,16 +31,14 @@ public class GatheringController {
             @Parameter(description = "날짜 필터 (YYYY-MM-DD)", example = "2026-04-21")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @Parameter(description = "상태 필터", example = "OPEN")
-            @RequestParam(required = false) GatheringStatus status
-    ) {
+            @RequestParam(required = false) GatheringStatus status) {
         return ResponseEntity.ok(ApiResult.success(gatheringService.getGatherings(date, status)));
     }
 
     @Operation(summary = "모임 상세 조회", description = "모임 상세 정보를 조회합니다. 장소 정보(주소, 지도 URL)를 포함합니다.")
     @GetMapping("/{id}")
     public ResponseEntity<ApiResult<GatheringDetailResponse>> getGathering(
-            @PathVariable UUID id
-    ) {
+            @PathVariable UUID id) {
         return ResponseEntity.ok(ApiResult.success(gatheringService.getGathering(id)));
     }
 }

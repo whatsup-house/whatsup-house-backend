@@ -1,4 +1,4 @@
-package com.whatsuphouse.backend.domain.gathering.dto;
+package com.whatsuphouse.backend.domain.gathering.client.dto;
 
 import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
 import com.whatsuphouse.backend.domain.gathering.enums.GatheringStatus;

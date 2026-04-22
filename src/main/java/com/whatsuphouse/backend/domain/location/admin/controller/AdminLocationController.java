@@ -1,9 +1,9 @@
-package com.whatsuphouse.backend.domain.location.controller;
+package com.whatsuphouse.backend.domain.location.admin.controller;
 
-import com.whatsuphouse.backend.domain.location.dto.LocationCreateRequest;
-import com.whatsuphouse.backend.domain.location.dto.LocationDetailResponse;
-import com.whatsuphouse.backend.domain.location.dto.LocationUpdateRequest;
-import com.whatsuphouse.backend.domain.location.service.LocationService;
+import com.whatsuphouse.backend.domain.location.admin.dto.AdminLocationCreateRequest;
+import com.whatsuphouse.backend.domain.location.admin.dto.AdminLocationDetailResponse;
+import com.whatsuphouse.backend.domain.location.admin.dto.AdminLocationUpdateRequest;
+import com.whatsuphouse.backend.domain.location.admin.service.AdminLocationService;
 import com.whatsuphouse.backend.global.common.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,22 +22,22 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AdminLocationController {
 
-    private final LocationService locationService;
+    private final AdminLocationService adminLocationService;
 
     @Operation(summary = "장소 등록", description = "관리자 권한이 필요합니다.")
     @PostMapping
-    public ResponseEntity<ApiResult<LocationDetailResponse>> createLocation(
-            @Valid @RequestBody LocationCreateRequest request) {
+    public ResponseEntity<ApiResult<AdminLocationDetailResponse>> createLocation(
+            @Valid @RequestBody AdminLocationCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResult.success("장소가 등록되었습니다.", locationService.createLocation(request)));
+                .body(ApiResult.success("장소가 등록되었습니다.", adminLocationService.createLocation(request)));
     }
 
     @Operation(summary = "장소 수정", description = "관리자 권한이 필요합니다.")
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResult<LocationDetailResponse>> updateLocation(
+    public ResponseEntity<ApiResult<AdminLocationDetailResponse>> updateLocation(
             @Parameter(description = "장소 ID", example = "550e8400-e29b-41d4-a716-446655440000")
             @PathVariable UUID id,
-            @Valid @RequestBody LocationUpdateRequest request) {
-        return ResponseEntity.ok(ApiResult.success("장소가 수정되었습니다.", locationService.updateLocation(id, request)));
+            @Valid @RequestBody AdminLocationUpdateRequest request) {
+        return ResponseEntity.ok(ApiResult.success("장소가 수정되었습니다.", adminLocationService.updateLocation(id, request)));
     }
 }

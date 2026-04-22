@@ -1,4 +1,4 @@
-package com.whatsuphouse.backend.domain.gathering.dto;
+package com.whatsuphouse.backend.domain.gathering.admin.dto;
 
 import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
 import com.whatsuphouse.backend.domain.gathering.enums.GatheringStatus;
@@ -7,12 +7,13 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
 
 @Getter
 @Builder
-public class GatheringDetailResponse {
+public class AdminGatheringDetailResponse {
 
     private UUID id;
     private String title;
@@ -25,8 +26,10 @@ public class GatheringDetailResponse {
     private GatheringStatus status;
     private String thumbnailUrl;
     private LocationDetail location;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-    public static GatheringDetailResponse from(Gathering gathering) {
+    public static AdminGatheringDetailResponse from(Gathering gathering) {
         LocationDetail locationDetail = null;
         Location location = gathering.getLocation();
         if (location != null) {
@@ -38,7 +41,7 @@ public class GatheringDetailResponse {
                     .build();
         }
 
-        return GatheringDetailResponse.builder()
+        return AdminGatheringDetailResponse.builder()
                 .id(gathering.getId())
                 .title(gathering.getTitle())
                 .description(gathering.getDescription())
@@ -50,6 +53,8 @@ public class GatheringDetailResponse {
                 .status(gathering.getStatus())
                 .thumbnailUrl(gathering.getThumbnailUrl())
                 .location(locationDetail)
+                .createdAt(gathering.getCreatedAt())
+                .updatedAt(gathering.getUpdatedAt())
                 .build();
     }
 

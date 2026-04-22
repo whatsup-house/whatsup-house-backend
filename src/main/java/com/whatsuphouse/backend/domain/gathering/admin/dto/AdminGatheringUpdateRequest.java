@@ -1,4 +1,4 @@
-package com.whatsuphouse.backend.domain.gathering.dto;
+package com.whatsuphouse.backend.domain.gathering.admin.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -11,7 +11,7 @@ import java.time.LocalTime;
 import java.util.UUID;
 
 @Getter
-public class GatheringUpdateRequest {
+public class AdminGatheringUpdateRequest {
 
     @Schema(example = "4월 홍대 소셜 게더링 (수정)")
     @NotBlank

@@ -1,8 +1,8 @@
-package com.whatsuphouse.backend.domain.location.controller;
+package com.whatsuphouse.backend.domain.location.client.controller;
 
-import com.whatsuphouse.backend.domain.location.dto.LocationDetailResponse;
-import com.whatsuphouse.backend.domain.location.dto.LocationResponse;
-import com.whatsuphouse.backend.domain.location.service.LocationService;
+import com.whatsuphouse.backend.domain.location.client.dto.LocationDetailResponse;
+import com.whatsuphouse.backend.domain.location.client.dto.LocationResponse;
+import com.whatsuphouse.backend.domain.location.client.service.LocationService;
 import com.whatsuphouse.backend.global.common.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

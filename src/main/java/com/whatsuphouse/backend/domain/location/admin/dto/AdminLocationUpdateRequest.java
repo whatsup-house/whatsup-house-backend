@@ -1,6 +1,5 @@
-package com.whatsuphouse.backend.domain.location.dto;
+package com.whatsuphouse.backend.domain.location.admin.dto;
 
-import com.whatsuphouse.backend.domain.location.entity.Location;
 import com.whatsuphouse.backend.domain.location.enums.LocationStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -9,7 +8,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 
 @Getter
-public class LocationCreateRequest {
+public class AdminLocationUpdateRequest {
 
     @Schema(example = "홍대 카페")
     @NotBlank
@@ -27,20 +26,10 @@ public class LocationCreateRequest {
     @Positive
     private Integer maxCapacity;
 
-    @Schema(example = "ACTIVE")
-    private LocationStatus status = LocationStatus.ACTIVE;
+    @Schema(example = "INACTIVE")
+    @NotNull
+    private LocationStatus status;
 
     @Schema(example = "주차 불가, 지하철 2호선 홍대입구역 도보 5분")
     private String memo;
-
-    public Location toEntity() {
-        return Location.builder()
-                .name(name)
-                .address(address)
-                .mapUrl(mapUrl)
-                .maxCapacity(maxCapacity)
-                .status(status != null ? status : LocationStatus.ACTIVE)
-                .memo(memo)
-                .build();
-    }
 }

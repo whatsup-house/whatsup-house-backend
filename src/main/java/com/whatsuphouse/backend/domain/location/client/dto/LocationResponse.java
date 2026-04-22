@@ -1,4 +1,4 @@
-package com.whatsuphouse.backend.domain.location.dto;
+package com.whatsuphouse.backend.domain.location.client.dto;
 
 import com.whatsuphouse.backend.domain.location.entity.Location;
 import lombok.Builder;

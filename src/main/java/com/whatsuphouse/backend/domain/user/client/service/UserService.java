@@ -1,7 +1,7 @@
-package com.whatsuphouse.backend.domain.user.service;
+package com.whatsuphouse.backend.domain.user.client.service;
 
-import com.whatsuphouse.backend.domain.user.dto.ProfileResponse;
-import com.whatsuphouse.backend.domain.user.dto.ProfileUpdateRequest;
+import com.whatsuphouse.backend.domain.user.client.dto.ProfileResponse;
+import com.whatsuphouse.backend.domain.user.client.dto.ProfileUpdateRequest;
 import com.whatsuphouse.backend.domain.user.entity.User;
 import com.whatsuphouse.backend.domain.user.repository.UserRepository;
 import com.whatsuphouse.backend.global.exception.CustomException;
@@ -36,6 +36,16 @@ public class UserService {
 
         user.updateProfile(request.getNickname(), request.getPhone(), request.getName(), request.getGender(), request.getAge());
         return ProfileResponse.from(user);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean checkNicknameAvailable(String nickname) {
+        return !userRepository.existsByNickname(nickname);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean checkEmailAvailable(String email) {
+        return !userRepository.existsByEmail(email);
     }
 
     public User findActiveUser(UUID userId) {

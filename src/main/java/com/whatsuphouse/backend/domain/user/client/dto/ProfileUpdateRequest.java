@@ -1,4 +1,4 @@
-package com.whatsuphouse.backend.domain.user.dto;
+package com.whatsuphouse.backend.domain.user.client.dto;
 
 import com.whatsuphouse.backend.global.common.enums.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;

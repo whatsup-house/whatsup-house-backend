@@ -38,12 +38,22 @@ Swagger: `/swagger-ui/index.html`
 
 ```
 domain/{name}/
-  controller/
-  service/
-  repository/
-  entity/
-  dto/
+  admin/
+    controller/   ← 관리자 전용 API
+    service/      ← 관리자 전용 비즈니스 로직
+    dto/          ← 관리자 전용 요청/응답 DTO (Admin 접두사)
+  client/
+    controller/   ← 유저 전용 API
+    service/      ← 유저 전용 비즈니스 로직
+    dto/          ← 유저 전용 요청/응답 DTO
+  entity/         ← 도메인 엔티티 (공유)
+  repository/     ← DB 접근 (공유)
+  enums/          ← 열거형 (공유, 도메인에 따라)
 ```
+
+- admin/client 기능이 없는 도메인(auth 등)은 하위 분리 없이 단일 구조 유지
+- admin DTO는 `Admin` 접두사를 붙인다 (AdminLocationResponse 등)
+- entity, repository, enums는 admin/client 공유 자원이므로 domain 루트에 둔다
 
 Cross-cutting:
 - `global/config`

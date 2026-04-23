@@ -5,6 +5,7 @@ import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
 import com.whatsuphouse.backend.domain.user.entity.User;
 import com.whatsuphouse.backend.global.common.BaseEntity;
 import com.whatsuphouse.backend.global.common.enums.Gender;
+import com.whatsuphouse.backend.global.common.enums.Mbti;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -52,8 +53,9 @@ public class Application extends BaseEntity {
     @Column(length = 50)
     private String job;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 4)
-    private String mbti;
+    private Mbti mbti;
 
     @Column(columnDefinition = "TEXT")
     private String intro;
@@ -67,7 +69,7 @@ public class Application extends BaseEntity {
 
     @Builder
     public Application(String bookingNumber, Gathering gathering, User user, String name, String phone,
-                       Gender gender, Integer age, String instagramId, String job, String mbti,
+                       Gender gender, Integer age, String instagramId, String job, Mbti mbti,
                        String intro, String referrerName) {
         this.bookingNumber = bookingNumber;
         this.gathering = gathering;
@@ -86,6 +88,7 @@ public class Application extends BaseEntity {
 
     public void cancel() {
         this.status = ApplicationStatus.CANCELLED;
+        delete();
     }
 
     public void confirm() {

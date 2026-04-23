@@ -1,6 +1,11 @@
 package com.whatsuphouse.backend.domain.auth.controller;
 
-import com.whatsuphouse.backend.domain.auth.dto.*;
+import com.whatsuphouse.backend.domain.auth.dto.request.LoginRequest;
+import com.whatsuphouse.backend.domain.auth.dto.request.RegisterRequest;
+import com.whatsuphouse.backend.domain.auth.dto.request.TokenRefreshRequest;
+import com.whatsuphouse.backend.domain.auth.dto.response.LoginResponse;
+import com.whatsuphouse.backend.domain.auth.dto.response.RegisterResponse;
+import com.whatsuphouse.backend.domain.auth.dto.response.TokenRefreshResponse;
 import com.whatsuphouse.backend.domain.auth.service.AuthService;
 import com.whatsuphouse.backend.global.auth.UserPrincipal;
 import com.whatsuphouse.backend.global.common.ApiResult;

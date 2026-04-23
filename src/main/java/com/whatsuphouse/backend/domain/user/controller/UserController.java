@@ -1,7 +1,7 @@
 package com.whatsuphouse.backend.domain.user.controller;
 
-import com.whatsuphouse.backend.domain.user.dto.ProfileResponse;
-import com.whatsuphouse.backend.domain.user.dto.ProfileUpdateRequest;
+import com.whatsuphouse.backend.domain.user.dto.request.ProfileUpdateRequest;
+import com.whatsuphouse.backend.domain.user.dto.response.ProfileResponse;
 import com.whatsuphouse.backend.domain.user.service.UserService;
 import com.whatsuphouse.backend.global.auth.UserPrincipal;
 import com.whatsuphouse.backend.global.common.ApiResult;

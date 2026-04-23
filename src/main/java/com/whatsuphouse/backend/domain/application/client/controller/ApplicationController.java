@@ -1,15 +1,16 @@
 package com.whatsuphouse.backend.domain.application.client.controller;
 
-import com.whatsuphouse.backend.domain.application.client.dto.ApplicationCheckResponse;
-import com.whatsuphouse.backend.domain.application.client.dto.ApplicationListResponse;
-import com.whatsuphouse.backend.domain.application.client.dto.ApplicationRequest;
-import com.whatsuphouse.backend.domain.application.client.dto.ApplicationResponse;
+import com.whatsuphouse.backend.domain.application.client.dto.response.ApplicationCheckResponse;
+import com.whatsuphouse.backend.domain.application.client.dto.response.ApplicationListResponse;
+import com.whatsuphouse.backend.domain.application.client.dto.request.ApplicationRequest;
+import com.whatsuphouse.backend.domain.application.client.dto.response.ApplicationResponse;
 import com.whatsuphouse.backend.domain.application.client.service.ApplicationService;
 import com.whatsuphouse.backend.global.auth.UserPrincipal;
 import com.whatsuphouse.backend.global.common.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,7 +30,7 @@ public class ApplicationController {
     @PostMapping("/api/gatherings/{gatheringId}/applications")
     public ResponseEntity<ApiResult<ApplicationResponse>> apply(
             @PathVariable UUID gatheringId,
-            @RequestBody ApplicationRequest request,
+            @Valid @RequestBody ApplicationRequest request,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
         return ResponseEntity.ok(ApiResult.success(applicationService.apply(gatheringId, request, principal.getUserId())));
@@ -39,7 +40,7 @@ public class ApplicationController {
     @PostMapping("/api/gatherings/{gatheringId}/applications/guest")
     public ResponseEntity<ApiResult<ApplicationResponse>> applyAsGuest(
             @PathVariable UUID gatheringId,
-            @RequestBody ApplicationRequest request
+            @Valid @RequestBody ApplicationRequest request
     ) {
         return ResponseEntity.ok(ApiResult.success(applicationService.applyAsGuest(gatheringId, request)));
     }

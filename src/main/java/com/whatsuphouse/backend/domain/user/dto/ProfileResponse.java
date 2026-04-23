@@ -15,6 +15,10 @@ public class ProfileResponse {
     private String email;
     private String nickname;
     private String phone;
+    private String instagramId;
+    private String mbti;
+    private String job;
+    private String intro;
     private boolean isAdmin;
     private LocalDateTime createdAt;
 
@@ -24,6 +28,10 @@ public class ProfileResponse {
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .phone(user.getPhone())
+                .instagramId(user.getInstagramId())
+                .mbti(user.getMbti())
+                .job(user.getJob())
+                .intro(user.getIntro())
                 .isAdmin(user.isAdmin())
                 .createdAt(user.getCreatedAt())
                 .build();

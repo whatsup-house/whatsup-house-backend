@@ -34,7 +34,8 @@ public class UserService {
             throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
         }
 
-        user.updateProfile(request.getNickname(), request.getPhone(), request.getName(), request.getGender(), request.getAge());
+        user.updateProfile(request.getNickname(), request.getPhone(), request.getName(), request.getGender(), request.getAge(),
+                request.getInstagramId(), request.getMbti(), request.getJob(), request.getIntro());
         return ProfileResponse.from(user);
     }
 

@@ -20,6 +20,8 @@ public class AdminApplicationResponse {
     private Gender gender;
     private Integer age;
     private String instagramId;
+    private String job;
+    private String mbti;
     private String intro;
     private String referrerName;
     private ApplicationStatus status;
@@ -36,6 +38,8 @@ public class AdminApplicationResponse {
                 .gender(application.getGender())
                 .age(application.getAge())
                 .instagramId(application.getInstagramId())
+                .job(application.getJob())
+                .mbti(application.getMbti())
                 .intro(application.getIntro())
                 .referrerName(application.getReferrerName())
                 .status(application.getStatus())

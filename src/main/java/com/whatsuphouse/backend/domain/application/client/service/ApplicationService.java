@@ -79,6 +79,8 @@ public class ApplicationService {
                 .gender(request.getGender())
                 .age(request.getAge())
                 .instagramId(request.getInstagramId())
+                .job(request.getJob())
+                .mbti(request.getMbti())
                 .intro(request.getIntro())
                 .referrerName(request.getReferrerName())
                 .build();

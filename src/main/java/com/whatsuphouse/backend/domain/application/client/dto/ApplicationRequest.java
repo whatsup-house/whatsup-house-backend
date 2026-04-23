@@ -29,6 +29,12 @@ public class ApplicationRequest {
     @Schema(example = "chulsoo_kim")
     private String instagramId;
 
+    @Schema(example = "디자이너")
+    private String job;
+
+    @Schema(example = "ENFP")
+    private String mbti;
+
     @Schema(example = "재즈를 좋아해서 신청합니다")
     private String intro;
 

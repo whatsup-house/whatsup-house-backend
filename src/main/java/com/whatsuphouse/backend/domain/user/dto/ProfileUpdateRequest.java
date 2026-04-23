@@ -28,4 +28,16 @@ public class ProfileUpdateRequest {
     @Schema(example = "26")
     @Min(value = 1, message = "나이는 1 이상이어야 합니다.")
     private Integer age;
+
+    @Schema(example = "hong_gildong")
+    private String instagramId;
+
+    @Schema(example = "ENFP")
+    private String mbti;
+
+    @Schema(example = "개발자")
+    private String job;
+
+    @Schema(example = "재즈와 커피를 좋아합니다")
+    private String intro;
 }

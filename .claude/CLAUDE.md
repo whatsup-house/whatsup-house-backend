@@ -61,7 +61,8 @@ Cross-cutting:
 - **entity**: 도메인 상태 + 행위 (DTO 변환 책임 금지)
 - **dto**: 요청/응답 전용
 
-> 세부 규칙 → `.claude/rules/backend/api.md`, `.claude/rules/backend/jpa.md`
+> 세부 규칙 → `.claude/rules/backend/api.md`, `.claude/rules/backend/jpa.md`, `.claude/rules/backend/naming.md`
+> Git 컨벤션 → `.claude/rules/git.md`
 
 ---
 
@@ -88,6 +89,10 @@ Cross-cutting:
 - 대규모 리팩토링은 요청이 있을 때만 수행한다
 - 변경은 최소 단위로 수행한다
 - 기존 코드 스타일을 우선적으로 따른다
+- Request DTO의 모든 필드에 `@NotBlank`/`@NotNull` 등 Bean Validation을 반드시 추가한다
+- 모든 비즈니스 예외는 `CustomException(ErrorCode)` 사용, `RuntimeException` 직접 사용 금지
+- 조회 실패 시 반드시 `.orElseThrow(() -> new CustomException(ErrorCode.XXX_NOT_FOUND))` 처리
+- 커밋/브랜치 규칙은 `.claude/rules/git.md` 참고, 클래스/필드명은 `.claude/rules/backend/naming.md` 참고
 
 ---
 

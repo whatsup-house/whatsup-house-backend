@@ -35,6 +35,46 @@
 - DTO는 일반 클래스를 사용하고, record는 지양한다.
 - Request DTO의 모든 필드에는 `@Schema(example = "...")` 를 반드시 추가한다.
 
+### 입력 검증 규칙
+
+Request DTO의 모든 필드에 적절한 Bean Validation 어노테이션을 반드시 추가한다.
+
+| 상황 | 어노테이션 |
+|------|-----------|
+| 필수 문자열 | `@NotBlank` |
+| 필수 객체/ID/숫자 | `@NotNull` |
+| 문자열 길이 제한 | `@Size(min = X, max = Y)` |
+| 숫자 범위 제한 | `@Min(X)`, `@Max(Y)` |
+| 이메일 형식 | `@Email` |
+| 정규식 형식 | `@Pattern(regexp = "...")` |
+
+- Controller의 `@RequestBody` 파라미터에 반드시 `@Valid`를 붙인다.
+- 검증 오류는 공통 예외 처리 흐름(`@MethodArgumentNotValidException` 핸들러)이 처리한다.
+- Controller에서 직접 검증 오류를 핸들링하지 않는다.
+
+### 예시
+
+```java
+// DTO
+public class GatheringCreateRequest {
+    @Schema(example = "4월 홍대 소셜 게더링")
+    @NotBlank
+    private String title;
+
+    @Schema(example = "3fa85f64-5717-4562-b3fc-2c963f66afa6")
+    @NotNull
+    private UUID locationId;
+
+    @Schema(example = "10")
+    @NotNull
+    @Min(2) @Max(20)
+    private Integer maxAttendees;
+}
+
+// Controller
+public ResponseEntity<?> createGathering(@RequestBody @Valid GatheringCreateRequest request) { ... }
+```
+
 ---
 
 ## 4. 응답 처리 규칙
@@ -57,6 +97,32 @@ return ResponseEntity.ok(ApiResponse.success(responseDto));
 * 예외는 `CustomException(ErrorCode)`를 사용한다.
 * Controller에서 불필요한 try-catch를 작성하지 않는다.
 * 예외 응답은 공통 예외 처리 흐름을 따른다.
+* 직접 `RuntimeException`, `IllegalArgumentException`을 던지지 않는다.
+* `ErrorCode`에 적절한 항목이 없으면 새로 추가하고 사용한다.
+
+### 예외 처리 패턴
+
+**조회 실패**
+```java
+User user = userRepository.findByIdAndDeletedAtIsNull(userId)
+        .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+```
+
+**중복 확인**
+```java
+if (userRepository.existsByEmail(email)) {
+    throw new CustomException(ErrorCode.EMAIL_ALREADY_EXISTS);
+}
+```
+
+**상태/권한 검증**
+```java
+if (gathering.getStatus() != GatheringStatus.OPEN) {
+    throw new CustomException(ErrorCode.GATHERING_NOT_RECRUITING);
+}
+```
+
+모든 비즈니스 예외는 위 패턴처럼 즉시 명시적으로 던진다. 조건을 흘려보내거나 null 반환으로 대응하지 않는다.
 
 ---
 

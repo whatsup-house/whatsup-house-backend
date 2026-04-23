@@ -12,6 +12,13 @@ tools: bash, read_file
 
 ---
 
+## 준수해야 할 규칙 문서
+
+- `.claude/rules/git.md` — 커밋 메시지 컨벤션, 브랜치 규칙
+- `.claude/rules/jira.md` — Jira 링크 형식
+
+---
+
 ## 입력값 (이전 단계에서 전달받는 정보)
 
 | 항목 | 예시 |
@@ -27,7 +34,7 @@ tools: bash, read_file
 
 ### 1. 커밋 타입 결정
 
-브랜치명 prefix로 커밋 타입을 결정한다:
+`.claude/rules/git.md`의 prefix 정의를 기준으로, 브랜치명 prefix에 맞는 커밋 타입을 결정한다.
 
 | 브랜치 prefix | 커밋 타입 |
 |------|------|
@@ -35,6 +42,7 @@ tools: bash, read_file
 | `fix/` | `fix` |
 | `refactor/` | `refactor` |
 | `docs/` | `docs` |
+| `chore/` | `chore` |
 
 ### 2. git add
 
@@ -48,15 +56,10 @@ git add {파일경로1} {파일경로2} ...
 
 ### 3. git commit
 
-커밋 메시지 컨벤션을 준수한다:
+`.claude/rules/git.md` 컨벤션을 준수한다:
 
 ```bash
-git commit -m "$(cat <<'EOF'
-{type}: {이슈 제목 한 줄 요약}
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
-EOF
-)"
+git commit -m "{type}: {이슈 제목 한 줄 요약} ({issueKey})"
 ```
 
 ### 4. git push

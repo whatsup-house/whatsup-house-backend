@@ -1,7 +1,7 @@
 package com.whatsuphouse.backend.domain.user.service;
 
-import com.whatsuphouse.backend.domain.user.dto.ProfileResponse;
-import com.whatsuphouse.backend.domain.user.dto.ProfileUpdateRequest;
+import com.whatsuphouse.backend.domain.user.dto.request.ProfileUpdateRequest;
+import com.whatsuphouse.backend.domain.user.dto.response.ProfileResponse;
 import com.whatsuphouse.backend.domain.user.entity.User;
 import com.whatsuphouse.backend.domain.user.repository.UserRepository;
 import com.whatsuphouse.backend.global.exception.CustomException;

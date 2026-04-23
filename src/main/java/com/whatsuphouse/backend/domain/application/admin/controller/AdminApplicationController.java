@@ -1,7 +1,7 @@
 package com.whatsuphouse.backend.domain.application.admin.controller;
 
-import com.whatsuphouse.backend.domain.application.admin.dto.AdminApplicationResponse;
-import com.whatsuphouse.backend.domain.application.admin.dto.AdminApplicationStatusRequest;
+import com.whatsuphouse.backend.domain.application.admin.dto.request.AdminApplicationStatusRequest;
+import com.whatsuphouse.backend.domain.application.admin.dto.response.AdminApplicationResponse;
 import com.whatsuphouse.backend.domain.application.admin.service.AdminApplicationService;
 import com.whatsuphouse.backend.domain.application.enums.ApplicationStatus;
 import com.whatsuphouse.backend.global.common.ApiResult;

@@ -2,6 +2,7 @@ package com.whatsuphouse.backend.domain.user.entity;
 
 import com.whatsuphouse.backend.global.common.BaseEntity;
 import com.whatsuphouse.backend.global.common.enums.Gender;
+import com.whatsuphouse.backend.global.common.enums.Mbti;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -45,8 +46,9 @@ public class User extends BaseEntity {
     @Column(name = "instagram_id", length = 100)
     private String instagramId;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 4)
-    private String mbti;
+    private Mbti mbti;
 
     @Column(length = 30)
     private String job;
@@ -69,7 +71,7 @@ public class User extends BaseEntity {
     }
 
     public void updateProfile(String nickname, String phone, String name, Gender gender, Integer age,
-                              String instagramId, String mbti, String job, String intro) {
+                              String instagramId, Mbti mbti, String job, String intro) {
         this.nickname = nickname;
         this.phone = phone;
         this.name = name;

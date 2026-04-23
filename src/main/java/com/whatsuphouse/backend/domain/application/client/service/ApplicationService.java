@@ -1,9 +1,9 @@
 package com.whatsuphouse.backend.domain.application.client.service;
 
-import com.whatsuphouse.backend.domain.application.client.dto.ApplicationCheckResponse;
-import com.whatsuphouse.backend.domain.application.client.dto.ApplicationListResponse;
-import com.whatsuphouse.backend.domain.application.client.dto.ApplicationRequest;
-import com.whatsuphouse.backend.domain.application.client.dto.ApplicationResponse;
+import com.whatsuphouse.backend.domain.application.client.dto.request.ApplicationRequest;
+import com.whatsuphouse.backend.domain.application.client.dto.response.ApplicationCheckResponse;
+import com.whatsuphouse.backend.domain.application.client.dto.response.ApplicationListResponse;
+import com.whatsuphouse.backend.domain.application.client.dto.response.ApplicationResponse;
 import com.whatsuphouse.backend.domain.application.entity.Application;
 import com.whatsuphouse.backend.domain.application.enums.ApplicationStatus;
 import com.whatsuphouse.backend.domain.application.repository.ApplicationRepository;
@@ -60,7 +60,7 @@ public class ApplicationService {
             }
         } else {
             if (request.getPhone() == null || request.getPhone().isBlank()) {
-                throw new CustomException(ErrorCode.ALREADY_APPLIED);
+                throw new CustomException(ErrorCode.GUEST_PHONE_REQUIRED);
             }
             if (applicationRepository.existsByGatheringIdAndPhoneAndDeletedAtIsNull(gathering.getId(), request.getPhone())) {
                 throw new CustomException(ErrorCode.ALREADY_APPLIED);

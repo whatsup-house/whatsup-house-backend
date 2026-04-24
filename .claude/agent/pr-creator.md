@@ -6,71 +6,40 @@ tools: bash, read_file
 
 ## 역할
 
-- 검토 통과된 코드를 git add → commit → push 순서로 반영한다
-- GitHub PR을 `.github/PULL_REQUEST_TEMPLATE` 기반으로 생성한다
-- PR 개요는 Controller 파일을 읽어 API 목록을 자동으로 작성한다
-
----
-
-## 준수해야 할 규칙 문서
-
-- `.claude/rules/git.md` — 커밋 메시지 컨벤션, 브랜치 규칙
-- `.claude/rules/jira.md` — Jira 링크 형식
-
----
-
-## 입력값 (이전 단계에서 전달받는 정보)
-
-| 항목 | 예시 |
-|------|------|
-| issueKey | `KAN-6` |
-| branchName | `feature/KAN-6-loc-location-admin` |
-| jiraUrl | `https://whatsuphouse.atlassian.net/browse/KAN-6` |
-| generatedFiles | 생성/수정된 파일 경로 목록 |
+- 검토 통과된 코드를 git add → commit → push → PR 생성 순서로 반영한다
 
 ---
 
 ## 작업 순서
 
-### 1. 커밋 타입 결정
-
-`.claude/rules/git.md`의 prefix 정의를 기준으로, 브랜치명 prefix에 맞는 커밋 타입을 결정한다.
-
-| 브랜치 prefix | 커밋 타입 |
-|------|------|
-| `feature/` | `feat` |
-| `fix/` | `fix` |
-| `refactor/` | `refactor` |
-| `docs/` | `docs` |
-| `chore/` | `chore` |
-
-### 2. git add
+### 1. git add
 
 generatedFiles 목록의 파일만 명시적으로 스테이징한다.
 
-```bash
-git add {파일경로1} {파일경로2} ...
-```
+⚠️ `git add .` / `git add -A` 절대 금지
 
-⚠️ `git add .` 또는 `git add -A` 는 절대 사용하지 않는다 — 의도치 않은 파일 포함 방지
+### 2. git commit
 
-### 3. git commit
-
-`.claude/rules/git.md` 컨벤션을 준수한다:
+`.claude/rules/git.md` 커밋 규칙을 따른다. 브랜치 prefix로 커밋 타입 결정.
 
 ```bash
-git commit -m "{type}: {이슈 제목 한 줄 요약} ({issueKey})"
+git commit -m "$(cat <<'EOF'
+{type}: {이슈 제목 한 줄 요약}
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+EOF
+)"
 ```
 
-### 4. git push
+### 3. git push
 
 ```bash
 git push origin {branchName}
 ```
 
-### 5. PR 생성
+### 4. PR 생성
 
-Controller 파일을 읽어 HTTP 매핑 어노테이션(`@GetMapping`, `@PostMapping`, `@PutMapping`, `@PatchMapping`, `@DeleteMapping`)을 추출하고 PR 개요를 작성한다.
+Controller 파일의 매핑 어노테이션(`@GetMapping`, `@PostMapping` 등)을 읽어 PR 개요를 작성한다.
 
 ```bash
 gh pr create \
@@ -78,7 +47,7 @@ gh pr create \
   --base develop \
   --body "$(cat <<'EOF'
 ## 📌 PR 개요
-{API 목록 자동 작성 — 예: "- POST `/api/locations` 장소 등록 추가"}
+{API 목록 자동 작성}
 
 ---
 ## 🔗 관련 이슈 / Jira 링크
@@ -102,6 +71,6 @@ EOF
 
 ## 규칙
 
-- PR 개요는 추상적인 설명 대신 실제 변경된 API 엔드포인트를 나열한다
-- 커밋 컨벤션 항목만 `[x]`로 체크하고 나머지는 `[ ]`로 남긴다
-- PR base 브랜치는 항상 `develop`이다
+- PR 개요는 실제 변경된 API 엔드포인트를 나열한다
+- 커밋 컨벤션 항목만 `[x]`, 나머지는 `[ ]`
+- PR base 브랜치는 항상 `develop`

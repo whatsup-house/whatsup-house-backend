@@ -11,14 +11,5 @@
       "Bash(git *)"
     ],
     "deny": []
-  },
-  "enabledMcpjsonServers": [
-    "atlassian"
-  ],
-  "mcpServers": {
-    "gdrive": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-google-drive"]
-    }
   }
 }

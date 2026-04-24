@@ -1,22 +1,19 @@
 # Jira 컨벤션
 
-이 문서는 이 프로젝트에서 Jira 이슈 생성, 업데이트, 상태 전환 시 따라야 할 규칙을 정의한다.
+이 문서는 Jira 이슈 생성, 업데이트, 상태 전환 시 따라야 할 규칙을 정의한다.
 
 ---
 
 ## 1. 이슈 생성 규칙
 
-- projectKey: `KAN`
-- issueTypeName: `Feature`
-- assignee: `atlassianUserInfo`로 조회한 현재 로그인 사용자 accountId
+- projectKey: `KAN`, issueTypeName: `Feature`
+- assignee: `atlassianUserInfo`로 조회한 현재 사용자 accountId
 - Start date(`customfield_10015`): 오늘 날짜 (YYYY-MM-DD)
-- `contentFormat: adf` 를 반드시 사용한다 — markdown 포맷은 한글 인코딩이 깨지므로 사용하지 않는다
+- **`contentFormat: adf`** 필수 — markdown은 한글 인코딩 깨짐
 
 ---
 
-## 2. 이슈 description ADF 템플릿
-
-`description` 필드에 아래 ADF 구조를 사용한다. 각 섹션의 `text` 값만 채워 넣는다.
+## 2. ADF 템플릿
 
 ```json
 {
@@ -103,50 +100,25 @@
 
 ---
 
-## 3. 이슈 요약 출력 형식
+## 3. 이슈 요약 형식
 
-Jira 이슈 작성 전 아래 형식으로 내용을 정리한다 (KAN-1 템플릿 기준):
+Jira 이슈 작성 전 아래 형식으로 정리:
 
 ```
-[설명]
-- 어떤 기능인지 간단히 작성
-
-[요구사항]
-- 무엇을 해야 하는지
-- 제약 조건
-- 인증 필요 여부
-
-[API]
-- Method / URL
-
-[Request]
-- 필드 목록 / 타입 / 필수 여부
-
-[Response]
-- 반환 필드 / 상태값
-
-[DB]
-- 사용 테이블 / 연관 관계
-
-[예외]
-- 케이스별 상태 코드
+[설명] [요구사항] [API] [Request] [Response] [DB] [예외]
 ```
 
 ---
 
-## 4. Jira 링크 형식
-
-PR, 커밋, 코멘트 등에서 Jira 이슈를 참조할 때:
+## 4. Jira 링크
 
 ```
 [{이슈키}](https://whatsuphouse.atlassian.net/browse/{이슈키})
 ```
 
-예시: `[KAN-43](https://whatsuphouse.atlassian.net/browse/KAN-43)`
-
 ---
 
-## 5. 금지 사항
+## 5. 금지
 
-- markdown contentFormat 사용 금지 (한글 깨짐)
-- 불명확한 내용을 추측해서 이슈에 기재하지 않는다 — "문서에 명시 없음"으로 표기
+- markdown contentFormat 사용 금지
+- 불명확한 내용 추측 금지 — "문서에 명시 없음"으로 표기

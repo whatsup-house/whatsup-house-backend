@@ -1,7 +1,7 @@
 package com.whatsuphouse.backend.domain.user.service;
 
-import com.whatsuphouse.backend.domain.user.dto.ProfileResponse;
-import com.whatsuphouse.backend.domain.user.dto.ProfileUpdateRequest;
+import com.whatsuphouse.backend.domain.user.dto.request.ProfileUpdateRequest;
+import com.whatsuphouse.backend.domain.user.dto.response.ProfileResponse;
 import com.whatsuphouse.backend.domain.user.entity.User;
 import com.whatsuphouse.backend.domain.user.repository.UserRepository;
 import com.whatsuphouse.backend.global.exception.CustomException;
@@ -34,8 +34,19 @@ public class UserService {
             throw new CustomException(ErrorCode.DUPLICATE_NICKNAME);
         }
 
-        user.updateProfile(request.getNickname(), request.getPhone(), request.getName(), request.getGender(), request.getAge());
+        user.updateProfile(request.getNickname(), request.getPhone(), request.getName(), request.getGender(), request.getAge(),
+                request.getInstagramId(), request.getMbti(), request.getJob(), request.getIntro());
         return ProfileResponse.from(user);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isEmailAvailable(String email) {
+        return !userRepository.existsByEmail(email);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isNicknameAvailable(String nickname) {
+        return !userRepository.existsByNickname(nickname);
     }
 
     public User findActiveUser(UUID userId) {

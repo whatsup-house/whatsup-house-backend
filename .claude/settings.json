@@ -7,10 +7,14 @@
       "Grep",
       "WebSearch",
       "Agent",
-      "mcp__*"
+      "mcp__*",
+      "Bash(git *)"
     ],
     "deny": []
   },
+  "enabledMcpjsonServers": [
+    "atlassian"
+  ],
   "mcpServers": {
     "gdrive": {
       "command": "npx",

@@ -35,6 +35,7 @@ public class SecurityConfig {
     //GET 요청만 허용
     private static final String[] PERMIT_GET = {
         "/api/gatherings/**",
+        "/api/locations/**",
         "/api/users/check-nickname",
         "/api/users/check-email"
     };
@@ -49,6 +50,7 @@ public class SecurityConfig {
                         .requestMatchers(PERMIT_ALL).permitAll()
                         .requestMatchers(HttpMethod.GET, PERMIT_GET).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/gatherings/*/applications/guest").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/applications/check").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll()

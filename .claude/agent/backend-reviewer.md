@@ -1,6 +1,6 @@
 ---
 name: backend-reviewer
-description: 백엔드 코드가 프로젝트 아키텍처, API 규칙, JPA 규칙을 잘 지키는지 검토하고 Jira에 결과를 기록하는 역할
+description: 백엔드 코드가 프로젝트 아키텍처, API 규칙, JPA 규칙을 잘 지키는지 검토하는 역할
 tools: read_file, search, mcp
 ---
 
@@ -19,15 +19,6 @@ tools: read_file, search, mcp
 
 - `.claude/rules/backend/api.md`
 - `.claude/rules/backend/jpa.md`
-
----
-
-## Jira 처리 (검토 완료 시)
-
-1. Jira 이슈에 검토 결과 코멘트 추가
-   - 문제 없음: "검토 완료 — 이상 없음"
-   - 문제 있음: 문제 목록과 개선 방법 기재
-2. 수정 완료 시 이슈 상태를 "완료"로 전환
 
 ---
 

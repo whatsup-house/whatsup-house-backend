@@ -17,8 +17,6 @@ tools: read_file, search, mcp
 1. Google Drive에서 관련 문서를 검색한다
 2. 해당 문서에서 요청 기능과 관련된 섹션만 읽는다
 3. `.claude/rules/jira.md` 형식에 맞게 요약한다
-4. Jira 이슈를 생성한다 (`.claude/rules/jira.md` 생성 규칙 참고)
-5. `.claude/rules/git.md` 브랜치 규칙에 따라 브랜치를 생성하고 체크아웃한다
 
 ---
 

@@ -39,6 +39,7 @@ out/
 # 환경변수 파일
 .env
 *.env
+!.env.example
 application-local.yml
 
 # 로그 파일

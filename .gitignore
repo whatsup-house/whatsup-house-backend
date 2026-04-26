@@ -40,10 +40,17 @@ out/
 .env
 *.env
 application-local.yml
-application-prod.yml
 
 # 로그 파일
 logs
 
 # Claude Code 로컬 설정
 .claude/settings.local.json
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+!*.tfvars.example
+.terraform.lock.hcl

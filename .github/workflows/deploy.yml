@@ -60,6 +60,8 @@ jobs:
             "DB_USERNAME=${{ secrets.DB_USERNAME }}" \
             "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" \
             "JWT_SECRET=${{ secrets.JWT_SECRET }}" \
+            "REDIS_HOST=redis" \
+            "REDIS_PORT=6379" \
             | ssh ec2-user@${{ secrets.EC2_HOST }} "cat > ~/whatsup/.env"
 
       - name: Copy files

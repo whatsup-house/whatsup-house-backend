@@ -18,3 +18,6 @@ Swagger: `/swagger-ui/index.html`
 domain/{name}/controller, service, repository, entity, dto
 global/config, auth, exception, common
 ```
+
+## Git
+커밋 메시지와 PR에 Claude, AI, 자동화 도구 관련 내용 일체 언급 금지. `Co-Authored-By` 포함 금지.

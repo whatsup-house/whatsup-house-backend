@@ -32,6 +32,11 @@ dependencies {
 
 	// DB
 	runtimeOnly 'org.postgresql:postgresql'
+	implementation 'org.flywaydb:flyway-core'
+	runtimeOnly 'org.flywaydb:flyway-database-postgresql'
+
+	// Actuator
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
 	// Redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
@@ -51,9 +56,24 @@ dependencies {
 	// Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'com.h2database:h2'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+tasks.named('bootRun') {
+	def envFile = rootProject.file('.env')
+	if (envFile.exists()) {
+		envFile.readLines().each { line ->
+			if (line && !line.startsWith('#')) {
+				def idx = line.indexOf('=')
+				if (idx > 0) {
+					environment(line.substring(0, idx).trim(), line.substring(idx + 1).trim())
+				}
+			}
+		}
+	}
 }

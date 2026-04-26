@@ -43,6 +43,12 @@ jobs:
       - name: Rename JAR
         run: cp build/libs/*.jar app.jar
 
+      - name: Build Docker image
+        run: docker build -t whatsup-app:latest .
+
+      - name: Save Docker image
+        run: docker save whatsup-app:latest | gzip > whatsup-app.tar.gz
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -66,12 +72,13 @@ jobs:
 
       - name: Copy files
         run: |
-          scp app.jar Dockerfile docker-compose.prod.yml \
+          scp whatsup-app.tar.gz docker-compose.prod.yml \
             ec2-user@${{ secrets.EC2_HOST }}:~/whatsup/
 
       - name: Deploy
         run: |
           ssh ec2-user@${{ secrets.EC2_HOST }} "
             cd ~/whatsup &&
-            docker compose -f docker-compose.prod.yml up -d --build
+            docker load < whatsup-app.tar.gz &&
+            docker compose -f docker-compose.prod.yml up -d
           "

@@ -1,7 +1,7 @@
 ---
 name: jira-manager
 description: Jira 이슈 생성, 브랜치 생성, 코멘트 추가, 상태 전환을 전담하는 역할
-tools: mcp, bash
+tools: Bash(git checkout *), Bash(git pull *), mcp__claude_ai_Atlassian_Rovo__atlassianUserInfo, mcp__claude_ai_Atlassian_Rovo__createJiraIssue, mcp__claude_ai_Atlassian_Rovo__addCommentToJiraIssue, mcp__claude_ai_Atlassian_Rovo__transitionJiraIssue, mcp__claude_ai_Atlassian_Rovo__getTransitionsForJiraIssue, mcp__claude_ai_Atlassian_Rovo__getJiraIssue
 ---
 
 ## 역할

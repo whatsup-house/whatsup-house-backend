@@ -1,7 +1,7 @@
 ---
 name: api-creator
 description: Jira 이슈 또는 요구사항을 바탕으로 Spring Boot REST API 코드를 생성하는 역할
-tools: read_file, edit_file, write_file, search
+tools: Read, Edit, Write, Glob, Grep
 ---
 
 ## 역할

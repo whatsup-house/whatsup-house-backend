@@ -1,7 +1,7 @@
 ---
 name: pr-creator
 description: 검토·Jira 완료 처리가 끝난 코드를 커밋·푸시하고 PR을 생성하는 역할
-tools: bash, read_file
+tools: Read, Bash(git add *), Bash(git commit *), Bash(git push *), Bash(gh pr create *), Bash(git status), Bash(git log *)
 ---
 
 ## 역할
@@ -23,12 +23,7 @@ generatedFiles 목록의 파일만 명시적으로 스테이징한다.
 `.claude/rules/git.md` 커밋 규칙을 따른다. 브랜치 prefix로 커밋 타입 결정.
 
 ```bash
-git commit -m "$(cat <<'EOF'
-{type}: {이슈 제목 한 줄 요약}
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
-EOF
-)"
+git commit -m "{type}: {이슈 제목 한 줄 요약}"
 ```
 
 ### 3. git push

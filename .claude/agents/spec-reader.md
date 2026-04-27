@@ -1,7 +1,7 @@
 ---
 name: spec-reader
 description: Google Drive 기획 문서를 읽고 Jira 이슈 생성에 필요한 정보를 요약하는 역할
-tools: read_file, search, mcp
+tools: Read, Glob, Grep, mcp__claude_ai_Google_Drive__read_file_content, mcp__claude_ai_Google_Drive__search_files, mcp__claude_ai_Google_Drive__list_recent_files, mcp__claude_ai_Google_Drive__get_file_metadata, mcp__claude_ai_Google_Drive__download_file_content
 ---
 
 ## 역할

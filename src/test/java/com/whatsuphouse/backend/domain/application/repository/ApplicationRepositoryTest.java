@@ -1,0 +1,166 @@
+package com.whatsuphouse.backend.domain.application.repository;
+
+import com.whatsuphouse.backend.domain.application.entity.Application;
+import com.whatsuphouse.backend.domain.application.enums.ApplicationStatus;
+import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
+import com.whatsuphouse.backend.domain.gathering.repository.GatheringRepository;
+import com.whatsuphouse.backend.domain.user.entity.User;
+import com.whatsuphouse.backend.domain.user.repository.UserRepository;
+import com.whatsuphouse.backend.global.common.enums.Gender;
+import com.whatsuphouse.backend.global.config.TestJpaConfig;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(TestJpaConfig.class)
+@ActiveProfiles("test")
+class ApplicationRepositoryTest {
+
+    @Autowired
+    private ApplicationRepository applicationRepository;
+
+    @Autowired
+    private GatheringRepository gatheringRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private TestEntityManager em;
+
+    private Gathering gathering;
+    private User user;
+
+    @BeforeEach
+    void setUp() {
+        gathering = gatheringRepository.save(Gathering.builder()
+                .title("재즈 게더링")
+                .eventDate(LocalDate.now().plusDays(7))
+                .maxAttendees(10)
+                .build());
+
+        user = userRepository.save(User.builder()
+                .email("test@example.com")
+                .password("encoded")
+                .name("김철수")
+                .gender(Gender.MALE)
+                .age(28)
+                .nickname("chulsoo")
+                .phone("01012345678")
+                .build());
+
+        em.flush();
+        em.clear();
+    }
+
+    @Test
+    @DisplayName("삭제되지 않은 신청 수를 CANCELLED 제외하고 카운트")
+    void countByGatheringIdAndStatusNotAndDeletedAtIsNull() {
+        saveApplication("WH001", gathering, user, null);
+        Application cancelled = saveApplication("WH002", gathering, null, "01011111111");
+        cancelled.cancel();
+        em.flush();
+        em.clear();
+
+        int count = applicationRepository.countByGatheringIdAndStatusNotAndDeletedAtIsNull(
+                gathering.getId(), ApplicationStatus.CANCELLED);
+
+        assertThat(count).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("회원의 게더링 중복 신청 여부 확인")
+    void existsByGatheringIdAndUserIdAndDeletedAtIsNull() {
+        saveApplication("WH001", gathering, user, null);
+        em.flush();
+        em.clear();
+
+        boolean exists = applicationRepository.existsByGatheringIdAndUserIdAndDeletedAtIsNull(
+                gathering.getId(), user.getId());
+
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    @DisplayName("비회원의 전화번호 중복 신청 여부 확인")
+    void existsByGatheringIdAndPhoneAndDeletedAtIsNull() {
+        saveApplication("WH001", gathering, null, "01099999999");
+        em.flush();
+        em.clear();
+
+        boolean exists = applicationRepository.existsByGatheringIdAndPhoneAndDeletedAtIsNull(
+                gathering.getId(), "01099999999");
+
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    @DisplayName("전화번호와 예약번호로 신청 단건 조회")
+    void findByPhoneAndBookingNumberAndDeletedAtIsNull() {
+        saveApplication("WH260428-ABC123", gathering, null, "01012345678");
+        em.flush();
+        em.clear();
+
+        Optional<Application> result = applicationRepository.findByPhoneAndBookingNumberAndDeletedAtIsNull(
+                "01012345678", "WH260428-ABC123");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getBookingNumber()).isEqualTo("WH260428-ABC123");
+    }
+
+    @Test
+    @DisplayName("삭제된 신청은 전화번호+예약번호 조회에서 제외")
+    void findByPhoneAndBookingNumberAndDeletedAtIsNull_excludesDeleted() {
+        Application application = saveApplication("WH260428-DEL999", gathering, null, "01077777777");
+        application.cancel();
+        em.flush();
+        em.clear();
+
+        Optional<Application> result = applicationRepository.findByPhoneAndBookingNumberAndDeletedAtIsNull(
+                "01077777777", "WH260428-DEL999");
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("회원 ID로 삭제되지 않은 신청 목록 조회")
+    void findByUserIdAndDeletedAtIsNull() {
+        saveApplication("WH001", gathering, user, null);
+        saveApplication("WH002", gathering, user, null);
+        em.flush();
+        em.clear();
+
+        List<Application> result = applicationRepository.findByUserIdAndDeletedAtIsNull(user.getId());
+
+        assertThat(result).hasSize(2);
+    }
+
+    // ── helper ───────────────────────────────────────────────────────────────
+
+    private Application saveApplication(String bookingNumber, Gathering g, User u, String phone) {
+        String name = (u != null) ? u.getName() : "비회원";
+        String phoneValue = (u != null) ? u.getPhone() : phone;
+
+        return applicationRepository.save(Application.builder()
+                .bookingNumber(bookingNumber)
+                .gathering(g)
+                .user(u)
+                .name(name)
+                .phone(phoneValue)
+                .build());
+    }
+}

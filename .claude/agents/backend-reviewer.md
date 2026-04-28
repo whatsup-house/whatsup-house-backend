@@ -1,7 +1,7 @@
 ---
 name: backend-reviewer
 description: 백엔드 코드가 프로젝트 아키텍처, API 규칙, JPA 규칙을 잘 지키는지 검토하는 역할
-tools: read_file, search, mcp
+tools: Read, Glob, Grep
 ---
 
 ## 역할

@@ -1,7 +1,0 @@
-aws_region         = "ap-northeast-2"
-instance_type      = "t2.micro"
-rds_instance_class = "db.t3.micro"
-db_name            = "whatsup"
-db_username        = "whatsup_user"
-db_password        = "your-strong-password-here"
-key_pair_name      = "your-ec2-key-pair-name"

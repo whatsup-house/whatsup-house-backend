@@ -73,7 +73,8 @@ class UserRepositoryTest {
     @DisplayName("삭제된 유저 단건 조회 시 빈 Optional 반환")
     void findByIdAndDeletedAtIsNull_excludesDeleted() {
         UUID id = user.getId();
-        user.delete();
+        User managedUser = userRepository.findById(id).get();
+        managedUser.delete();
         em.flush();
         em.clear();
 

@@ -1,0 +1,161 @@
+package com.whatsuphouse.backend.domain.user.service;
+
+import com.whatsuphouse.backend.domain.user.dto.request.ProfileUpdateRequest;
+import com.whatsuphouse.backend.domain.user.dto.response.ProfileResponse;
+import com.whatsuphouse.backend.domain.user.entity.User;
+import com.whatsuphouse.backend.domain.user.repository.UserRepository;
+import com.whatsuphouse.backend.global.common.enums.Gender;
+import com.whatsuphouse.backend.global.exception.CustomException;
+import com.whatsuphouse.backend.global.exception.ErrorCode;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
+
+@ExtendWith(MockitoExtension.class)
+class UserServiceTest {
+
+    @Mock
+    private UserRepository userRepository;
+
+    @InjectMocks
+    private UserService userService;
+
+    private UUID userId;
+    private User user;
+
+    @BeforeEach
+    void setUp() {
+        userId = UUID.randomUUID();
+
+        user = User.builder()
+                .email("test@example.com")
+                .password("encoded")
+                .name("홍길동")
+                .gender(Gender.MALE)
+                .age(25)
+                .nickname("gildong")
+                .phone("01012345678")
+                .build();
+        ReflectionTestUtils.setField(user, "id", userId);
+    }
+
+    // ── getProfile() ─────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("활성 유저 프로필 조회 성공")
+    void getProfile_success() {
+        given(userRepository.findByIdAndDeletedAtIsNull(userId)).willReturn(Optional.of(user));
+
+        ProfileResponse response = userService.getProfile(userId);
+
+        assertThat(response.getEmail()).isEqualTo("test@example.com");
+        assertThat(response.getNickname()).isEqualTo("gildong");
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 유저 프로필 조회 시 예외 발생")
+    void getProfile_userNotFound_throwsException() {
+        given(userRepository.findByIdAndDeletedAtIsNull(userId)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.getProfile(userId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+    }
+
+    // ── updateProfile() ──────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("닉네임 변경 포함 프로필 수정 성공")
+    void updateProfile_success() {
+        ProfileUpdateRequest request = buildUpdateRequest("newgildong");
+        given(userRepository.findByIdAndDeletedAtIsNull(userId)).willReturn(Optional.of(user));
+        given(userRepository.existsByNickname("newgildong")).willReturn(false);
+
+        ProfileResponse response = userService.updateProfile(userId, request);
+
+        assertThat(response.getNickname()).isEqualTo("newgildong");
+    }
+
+    @Test
+    @DisplayName("동일 닉네임 유지 시 중복 확인 없이 수정 성공")
+    void updateProfile_sameNickname_success() {
+        ProfileUpdateRequest request = buildUpdateRequest("gildong");
+        given(userRepository.findByIdAndDeletedAtIsNull(userId)).willReturn(Optional.of(user));
+
+        ProfileResponse response = userService.updateProfile(userId, request);
+
+        assertThat(response.getNickname()).isEqualTo("gildong");
+    }
+
+    @Test
+    @DisplayName("이미 사용 중인 닉네임으로 수정 시 예외 발생")
+    void updateProfile_duplicateNickname_throwsException() {
+        ProfileUpdateRequest request = buildUpdateRequest("taken");
+        given(userRepository.findByIdAndDeletedAtIsNull(userId)).willReturn(Optional.of(user));
+        given(userRepository.existsByNickname("taken")).willReturn(true);
+
+        assertThatThrownBy(() -> userService.updateProfile(userId, request))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_NICKNAME);
+    }
+
+    // ── isEmailAvailable() ───────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("사용 가능한 이메일이면 true 반환")
+    void isEmailAvailable_available_returnsTrue() {
+        given(userRepository.existsByEmail("new@example.com")).willReturn(false);
+
+        assertThat(userService.isEmailAvailable("new@example.com")).isTrue();
+    }
+
+    @Test
+    @DisplayName("이미 사용 중인 이메일이면 false 반환")
+    void isEmailAvailable_taken_returnsFalse() {
+        given(userRepository.existsByEmail("test@example.com")).willReturn(true);
+
+        assertThat(userService.isEmailAvailable("test@example.com")).isFalse();
+    }
+
+    // ── isNicknameAvailable() ────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("사용 가능한 닉네임이면 true 반환")
+    void isNicknameAvailable_available_returnsTrue() {
+        given(userRepository.existsByNickname("newnick")).willReturn(false);
+
+        assertThat(userService.isNicknameAvailable("newnick")).isTrue();
+    }
+
+    @Test
+    @DisplayName("이미 사용 중인 닉네임이면 false 반환")
+    void isNicknameAvailable_taken_returnsFalse() {
+        given(userRepository.existsByNickname("gildong")).willReturn(true);
+
+        assertThat(userService.isNicknameAvailable("gildong")).isFalse();
+    }
+
+    // ── helpers ──────────────────────────────────────────────────────────────
+
+    private ProfileUpdateRequest buildUpdateRequest(String nickname) {
+        ProfileUpdateRequest request = new ProfileUpdateRequest();
+        ReflectionTestUtils.setField(request, "nickname", nickname);
+        ReflectionTestUtils.setField(request, "phone", "01087654321");
+        ReflectionTestUtils.setField(request, "name", "홍길동");
+        ReflectionTestUtils.setField(request, "gender", Gender.MALE);
+        ReflectionTestUtils.setField(request, "age", 25);
+        return request;
+    }
+}

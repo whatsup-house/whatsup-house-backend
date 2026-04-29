@@ -2,6 +2,7 @@ package com.whatsuphouse.backend.domain.auth.service;
 
 import com.whatsuphouse.backend.domain.auth.dto.request.LoginRequest;
 import com.whatsuphouse.backend.domain.auth.dto.request.RegisterRequest;
+import com.whatsuphouse.backend.domain.auth.dto.request.TokenRefreshRequest;
 import com.whatsuphouse.backend.domain.auth.dto.response.LoginResponse;
 import com.whatsuphouse.backend.domain.auth.dto.response.RegisterResponse;
 import com.whatsuphouse.backend.domain.auth.dto.response.TokenRefreshResponse;
@@ -85,8 +86,10 @@ public class AuthService {
         redisTemplate.delete(REFRESH_TOKEN_PREFIX + userId);
     }
 
-    public TokenRefreshResponse refresh(String refreshToken) {
-        if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
+    public TokenRefreshResponse refresh(TokenRefreshRequest request) {
+        String refreshToken = request.getRefreshToken();
+
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
             throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 

@@ -1,0 +1,322 @@
+package com.whatsuphouse.backend.domain.application.service;
+
+import com.whatsuphouse.backend.domain.application.client.dto.request.ApplicationRequest;
+import com.whatsuphouse.backend.domain.application.client.dto.response.ApplicationCheckResponse;
+import com.whatsuphouse.backend.domain.application.client.dto.response.ApplicationListResponse;
+import com.whatsuphouse.backend.domain.application.client.dto.response.ApplicationResponse;
+import com.whatsuphouse.backend.domain.application.client.service.ApplicationService;
+import com.whatsuphouse.backend.domain.application.entity.Application;
+import com.whatsuphouse.backend.domain.application.enums.ApplicationStatus;
+import com.whatsuphouse.backend.domain.application.repository.ApplicationRepository;
+import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
+import com.whatsuphouse.backend.domain.gathering.enums.GatheringStatus;
+import com.whatsuphouse.backend.domain.gathering.repository.GatheringRepository;
+import com.whatsuphouse.backend.domain.user.entity.User;
+import com.whatsuphouse.backend.domain.user.repository.UserRepository;
+import com.whatsuphouse.backend.global.common.enums.Gender;
+import com.whatsuphouse.backend.global.exception.CustomException;
+import com.whatsuphouse.backend.global.exception.ErrorCode;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+
+@ExtendWith(MockitoExtension.class)
+class ApplicationServiceTest {
+
+    @Mock
+    private ApplicationRepository applicationRepository;
+
+    @Mock
+    private GatheringRepository gatheringRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @InjectMocks
+    private ApplicationService applicationService;
+
+    private UUID gatheringId;
+    private UUID userId;
+    private UUID applicationId;
+    private Gathering gathering;
+    private User user;
+    private ApplicationRequest request;
+
+    @BeforeEach
+    void setUp() {
+        gatheringId = UUID.randomUUID();
+        userId = UUID.randomUUID();
+        applicationId = UUID.randomUUID();
+
+        gathering = Gathering.builder()
+                .title("재즈 게더링")
+                .eventDate(LocalDate.now().plusDays(7))
+                .maxAttendees(10)
+                .build();
+
+        user = User.builder()
+                .email("test@example.com")
+                .password("encoded")
+                .name("김철수")
+                .gender(Gender.MALE)
+                .age(28)
+                .nickname("chulsoo")
+                .phone("01012345678")
+                .build();
+        ReflectionTestUtils.setField(user, "id", userId);
+
+        request = new ApplicationRequest();
+    }
+
+    // ── apply() ──────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("회원 정상 신청")
+    void apply_member_success() {
+        given(gatheringRepository.findByIdAndDeletedAtIsNull(gatheringId)).willReturn(Optional.of(gathering));
+        given(applicationRepository.countByGatheringIdAndStatusNotAndDeletedAtIsNull(any(), any())).willReturn(0);
+        given(userRepository.findByIdAndDeletedAtIsNull(userId)).willReturn(Optional.of(user));
+        given(applicationRepository.existsByGatheringIdAndUserIdAndDeletedAtIsNull(any(), any())).willReturn(false);
+        given(applicationRepository.save(any())).willAnswer(inv -> inv.getArgument(0));
+
+        ApplicationResponse response = applicationService.apply(gatheringId, request, userId);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(ApplicationStatus.PENDING);
+    }
+
+    @Test
+    @DisplayName("비회원 정상 신청")
+    void apply_guest_success() {
+        setPhone(request, "01098765432");
+
+        given(gatheringRepository.findByIdAndDeletedAtIsNull(gatheringId)).willReturn(Optional.of(gathering));
+        given(applicationRepository.countByGatheringIdAndStatusNotAndDeletedAtIsNull(any(), any())).willReturn(0);
+        given(applicationRepository.existsByGatheringIdAndPhoneAndDeletedAtIsNull(any(), any())).willReturn(false);
+        given(applicationRepository.save(any())).willAnswer(inv -> inv.getArgument(0));
+
+        ApplicationResponse response = applicationService.apply(gatheringId, request, null);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(ApplicationStatus.PENDING);
+    }
+
+    @Test
+    @DisplayName("게더링이 존재하지 않으면 예외 발생")
+    void apply_gatheringNotFound_throwsException() {
+        given(gatheringRepository.findByIdAndDeletedAtIsNull(gatheringId)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> applicationService.apply(gatheringId, request, userId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.GATHERING_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("모집 중이 아닌 게더링에 신청하면 예외 발생")
+    void apply_gatheringNotOpen_throwsException() {
+        gathering.changeStatus(GatheringStatus.CLOSED);
+        given(gatheringRepository.findByIdAndDeletedAtIsNull(gatheringId)).willReturn(Optional.of(gathering));
+
+        assertThatThrownBy(() -> applicationService.apply(gatheringId, request, userId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.GATHERING_NOT_RECRUITING);
+    }
+
+    @Test
+    @DisplayName("정원이 초과된 게더링에 신청하면 예외 발생")
+    void apply_gatheringFull_throwsException() {
+        given(gatheringRepository.findByIdAndDeletedAtIsNull(gatheringId)).willReturn(Optional.of(gathering));
+        given(applicationRepository.countByGatheringIdAndStatusNotAndDeletedAtIsNull(any(), any()))
+                .willReturn(gathering.getMaxAttendees());
+
+        assertThatThrownBy(() -> applicationService.apply(gatheringId, request, userId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.GATHERING_FULL);
+    }
+
+    @Test
+    @DisplayName("회원이 이미 신청한 게더링에 재신청하면 예외 발생")
+    void apply_memberAlreadyApplied_throwsException() {
+        given(gatheringRepository.findByIdAndDeletedAtIsNull(gatheringId)).willReturn(Optional.of(gathering));
+        given(applicationRepository.countByGatheringIdAndStatusNotAndDeletedAtIsNull(any(), any())).willReturn(0);
+        given(userRepository.findByIdAndDeletedAtIsNull(userId)).willReturn(Optional.of(user));
+        given(applicationRepository.existsByGatheringIdAndUserIdAndDeletedAtIsNull(any(), any())).willReturn(true);
+
+        assertThatThrownBy(() -> applicationService.apply(gatheringId, request, userId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ALREADY_APPLIED);
+    }
+
+    @Test
+    @DisplayName("비회원 신청 시 전화번호가 없으면 예외 발생")
+    void apply_guestPhoneMissing_throwsException() {
+        given(gatheringRepository.findByIdAndDeletedAtIsNull(gatheringId)).willReturn(Optional.of(gathering));
+        given(applicationRepository.countByGatheringIdAndStatusNotAndDeletedAtIsNull(any(), any())).willReturn(0);
+
+        assertThatThrownBy(() -> applicationService.apply(gatheringId, request, null))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.GUEST_PHONE_REQUIRED);
+    }
+
+    @Test
+    @DisplayName("비회원이 이미 신청한 전화번호로 재신청하면 예외 발생")
+    void apply_guestPhoneDuplicated_throwsException() {
+        setPhone(request, "01098765432");
+
+        given(gatheringRepository.findByIdAndDeletedAtIsNull(gatheringId)).willReturn(Optional.of(gathering));
+        given(applicationRepository.countByGatheringIdAndStatusNotAndDeletedAtIsNull(any(), any())).willReturn(0);
+        given(applicationRepository.existsByGatheringIdAndPhoneAndDeletedAtIsNull(any(), any())).willReturn(true);
+
+        assertThatThrownBy(() -> applicationService.apply(gatheringId, request, null))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ALREADY_APPLIED);
+    }
+
+    // ── cancel() ─────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("정상 취소")
+    void cancel_success() {
+        Application application = buildApplication(ApplicationStatus.PENDING, user, gathering);
+        given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.of(application));
+
+        applicationService.cancel(applicationId, userId);
+
+        assertThat(application.getStatus()).isEqualTo(ApplicationStatus.CANCELLED);
+    }
+
+    @Test
+    @DisplayName("신청이 존재하지 않으면 예외 발생")
+    void cancel_applicationNotFound_throwsException() {
+        given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> applicationService.cancel(applicationId, userId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPLICATION_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("본인 신청이 아니면 예외 발생")
+    void cancel_forbidden_throwsException() {
+        UUID otherUserId = UUID.randomUUID();
+        Application application = buildApplication(ApplicationStatus.PENDING, user, gathering);
+        given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.of(application));
+
+        assertThatThrownBy(() -> applicationService.cancel(applicationId, otherUserId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPLICATION_FORBIDDEN);
+    }
+
+    @Test
+    @DisplayName("비회원 신청은 취소 불가")
+    void cancel_guestApplication_throwsException() {
+        Application application = buildApplication(ApplicationStatus.PENDING, null, gathering);
+        given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.of(application));
+
+        assertThatThrownBy(() -> applicationService.cancel(applicationId, userId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPLICATION_FORBIDDEN);
+    }
+
+    @Test
+    @DisplayName("PENDING 상태가 아니면 취소 불가")
+    void cancel_notPending_throwsException() {
+        Application application = buildApplication(ApplicationStatus.CONFIRMED, user, gathering);
+        given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.of(application));
+
+        assertThatThrownBy(() -> applicationService.cancel(applicationId, userId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CANNOT_CANCEL);
+    }
+
+    // ── checkApplication() ───────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("예약번호와 전화번호로 신청 조회 성공")
+    void checkApplication_success() {
+        Application application = buildApplication(ApplicationStatus.PENDING, null, gathering);
+        given(applicationRepository.findByPhoneAndBookingNumberAndDeletedAtIsNull("01012345678", "WH260428-ABC123"))
+                .willReturn(Optional.of(application));
+
+        ApplicationCheckResponse response = applicationService.checkApplication("01012345678", "WH260428-ABC123");
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(ApplicationStatus.PENDING);
+    }
+
+    @Test
+    @DisplayName("일치하는 신청이 없으면 예외 발생")
+    void checkApplication_notFound_throwsException() {
+        given(applicationRepository.findByPhoneAndBookingNumberAndDeletedAtIsNull(any(), any()))
+                .willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> applicationService.checkApplication("01099999999", "WH000000-XXXXXX"))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPLICATION_NOT_FOUND);
+    }
+
+    // ── getMyApplications() ──────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("내 신청 목록 반환")
+    void getMyApplications_returnsApplications() {
+        Application application = buildApplication(ApplicationStatus.PENDING, user, gathering);
+        given(applicationRepository.findByUserIdAndDeletedAtIsNull(userId)).willReturn(List.of(application));
+
+        List<ApplicationListResponse> result = applicationService.getMyApplications(userId);
+
+        assertThat(result).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("신청 내역이 없으면 빈 리스트 반환")
+    void getMyApplications_empty_returnsEmptyList() {
+        given(applicationRepository.findByUserIdAndDeletedAtIsNull(userId)).willReturn(List.of());
+
+        List<ApplicationListResponse> result = applicationService.getMyApplications(userId);
+
+        assertThat(result).isEmpty();
+    }
+
+    // ── helpers ──────────────────────────────────────────────────────────────
+
+    private Application buildApplication(ApplicationStatus status, User applicationUser, Gathering applicationGathering) {
+        Application application = Application.builder()
+                .bookingNumber("WH260428-ABC123")
+                .gathering(applicationGathering)
+                .user(applicationUser)
+                .name(applicationUser != null ? applicationUser.getName() : "비회원")
+                .phone(applicationUser != null ? applicationUser.getPhone() : "01012345678")
+                .build();
+
+        if (status == ApplicationStatus.CONFIRMED) application.confirm();
+        if (status == ApplicationStatus.CANCELLED) application.cancel();
+
+        return application;
+    }
+
+    private void setPhone(ApplicationRequest req, String phone) {
+        try {
+            var field = ApplicationRequest.class.getDeclaredField("phone");
+            field.setAccessible(true);
+            field.set(req, phone);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+}

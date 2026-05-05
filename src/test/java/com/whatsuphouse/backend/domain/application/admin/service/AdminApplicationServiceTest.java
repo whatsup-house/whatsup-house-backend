@@ -1,6 +1,7 @@
 package com.whatsuphouse.backend.domain.application.admin.service;
 
 import com.whatsuphouse.backend.domain.application.admin.dto.request.AdminApplicationStatusRequest;
+import com.whatsuphouse.backend.domain.application.admin.dto.response.AdminApplicationDeleteResponse;
 import com.whatsuphouse.backend.domain.application.admin.dto.response.AdminApplicationResponse;
 import com.whatsuphouse.backend.domain.application.entity.Application;
 import com.whatsuphouse.backend.domain.application.enums.ApplicationStatus;
@@ -70,7 +71,7 @@ class AdminApplicationServiceTest {
         given(applicationRepository.findByDeletedAtIsNull()).willReturn(List.of(application));
 
         // WHEN
-        List<AdminApplicationResponse> result = adminApplicationService.getAllApplications();
+        List<AdminApplicationResponse> result = adminApplicationService.getAllApplications(null, null);
 
         // THEN
         assertThat(result).hasSize(1);
@@ -84,7 +85,7 @@ class AdminApplicationServiceTest {
         given(applicationRepository.findByDeletedAtIsNull()).willReturn(List.of());
 
         // WHEN
-        List<AdminApplicationResponse> result = adminApplicationService.getAllApplications();
+        List<AdminApplicationResponse> result = adminApplicationService.getAllApplications(null, null);
 
         // THEN
         assertThat(result).isEmpty();
@@ -99,7 +100,7 @@ class AdminApplicationServiceTest {
         given(applicationRepository.findByGatheringIdAndDeletedAtIsNull(gatheringId)).willReturn(List.of(application));
 
         // WHEN
-        List<AdminApplicationResponse> result = adminApplicationService.getApplicationsByGathering(gatheringId);
+        List<AdminApplicationResponse> result = adminApplicationService.getAllApplications(gatheringId, null);
 
         // THEN
         assertThat(result).hasSize(1);
@@ -113,7 +114,7 @@ class AdminApplicationServiceTest {
         given(applicationRepository.findByGatheringIdAndDeletedAtIsNull(gatheringId)).willReturn(List.of());
 
         // WHEN
-        List<AdminApplicationResponse> result = adminApplicationService.getApplicationsByGathering(gatheringId);
+        List<AdminApplicationResponse> result = adminApplicationService.getAllApplications(gatheringId, null);
 
         // THEN
         assertThat(result).isEmpty();
@@ -128,7 +129,7 @@ class AdminApplicationServiceTest {
         given(applicationRepository.findByStatusAndDeletedAtIsNull(ApplicationStatus.PENDING)).willReturn(List.of(application));
 
         // WHEN
-        List<AdminApplicationResponse> result = adminApplicationService.getApplicationsByStatus(ApplicationStatus.PENDING);
+        List<AdminApplicationResponse> result = adminApplicationService.getAllApplications(null, ApplicationStatus.PENDING);
 
         // THEN
         assertThat(result).hasSize(1);
@@ -142,7 +143,7 @@ class AdminApplicationServiceTest {
         given(applicationRepository.findByStatusAndDeletedAtIsNull(ApplicationStatus.CONFIRMED)).willReturn(List.of());
 
         // WHEN
-        List<AdminApplicationResponse> result = adminApplicationService.getApplicationsByStatus(ApplicationStatus.CONFIRMED);
+        List<AdminApplicationResponse> result = adminApplicationService.getAllApplications(null, ApplicationStatus.CONFIRMED);
 
         // THEN
         assertThat(result).isEmpty();
@@ -245,6 +246,49 @@ class AdminApplicationServiceTest {
         assertThatThrownBy(() -> adminApplicationService.changeStatus(applicationId, request))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPLICATION_NOT_FOUND);
+    }
+
+    // ── deleteApplication() ──────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("PENDING 신청 삭제 성공")
+    void deleteApplication_pending_success() {
+        // GIVEN
+        given(applicationRepository.findById(applicationId)).willReturn(Optional.of(application));
+        UUID id = applicationId;
+
+        //WHEN
+        AdminApplicationDeleteResponse response = adminApplicationService.deleteApplication(id);
+        // THEN
+        assertThat(response.getStatus()).isEqualTo(ApplicationStatus.CANCELLED);
+    }
+
+    @Test
+    @DisplayName("이미 CANCELLED인 신청은 멱등 처리")
+    void deleteApplication_alreadyCancelled_idempotent() {
+        // GIVEN
+        given(applicationRepository.findById(applicationId)).willReturn(Optional.of(application));
+        UUID id = applicationId;
+        application.cancel();
+
+        //WHEN
+        AdminApplicationDeleteResponse response = adminApplicationService.deleteApplication(id);
+        // THEN
+        assertThat(response.getStatus()).isEqualTo(ApplicationStatus.CANCELLED);
+    }
+
+    @Test
+    @DisplayName("ATTENDED 신청 삭제 시도 시 예외 발생")
+    void deleteApplication_attended_throwsException() {
+        // GIVEN
+        given(applicationRepository.findById(applicationId)).willReturn(Optional.of(application));
+        UUID id = applicationId;
+        application.attend();
+
+        // WHEN & THEN
+        assertThatThrownBy(() -> adminApplicationService.deleteApplication(applicationId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CANNOT_DELETE);;
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────

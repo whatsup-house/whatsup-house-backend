@@ -149,6 +149,56 @@ class ApplicationRepositoryTest {
         assertThat(result).hasSize(2);
     }
 
+    // ── countByGatheringIdsGroupByStatus() ───────────────────────────────────
+
+    @Test
+    @DisplayName("게더링 ID 목록으로 status별 신청 수 집계")
+    void countByGatheringIdsGroupByStatus_returnsGroupedCount() {
+        // GIVEN
+        Application app1 = saveApplication("WH101", gathering, user, null);
+        Application app2 = saveApplication("WH102", gathering, null, "01022222222");
+        app2.confirm();
+        em.flush();
+        em.clear();
+
+        // WHEN
+        List<ApplicationRepository.ApplicationCountProjection> result =
+                applicationRepository.countByGatheringIdsGroupByStatus(List.of(gathering.getId()));
+
+        // THEN
+        assertThat(result).hasSize(2);
+        result.forEach(p -> assertThat(p.getGatheringId()).isEqualTo(gathering.getId()));
+        long pendingCount = result.stream()
+                .filter(p -> p.getStatus() == ApplicationStatus.PENDING)
+                .mapToLong(ApplicationRepository.ApplicationCountProjection::getCount)
+                .sum();
+        long confirmedCount = result.stream()
+                .filter(p -> p.getStatus() == ApplicationStatus.CONFIRMED)
+                .mapToLong(ApplicationRepository.ApplicationCountProjection::getCount)
+                .sum();
+        assertThat(pendingCount).isEqualTo(1);
+        assertThat(confirmedCount).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("CANCELLED된 신청은 집계에서 제외")
+    void countByGatheringIdsGroupByStatus_excludesCancelled() {
+        // GIVEN
+        Application app1 = saveApplication("WH201", gathering, user, null);
+        Application app2 = saveApplication("WH202", gathering, null, "01033333333");
+        app2.cancel();
+        em.flush();
+        em.clear();
+
+        // WHEN
+        List<ApplicationRepository.ApplicationCountProjection> result =
+                applicationRepository.countByGatheringIdsGroupByStatus(List.of(gathering.getId()));
+
+        // THEN — CANCELLED는 deletedAt이 설정되어 집계에서 제외됨
+        long total = result.stream().mapToLong(ApplicationRepository.ApplicationCountProjection::getCount).sum();
+        assertThat(total).isEqualTo(1);
+    }
+
     // ── helper ───────────────────────────────────────────────────────────────
 
     private Application saveApplication(String bookingNumber, Gathering g, User u, String phone) {

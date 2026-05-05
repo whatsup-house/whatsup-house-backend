@@ -1,10 +1,15 @@
 package com.whatsuphouse.backend.domain.gathering.admin.service;
 
+import com.whatsuphouse.backend.domain.application.enums.ApplicationStatus;
+import com.whatsuphouse.backend.domain.application.repository.ApplicationRepository;
+import com.whatsuphouse.backend.domain.application.repository.ApplicationRepository.ApplicationCountProjection;
 import com.whatsuphouse.backend.domain.gathering.admin.dto.request.GatheringCreateRequest;
 import com.whatsuphouse.backend.domain.gathering.admin.dto.request.GatheringStatusRequest;
 import com.whatsuphouse.backend.domain.gathering.admin.dto.request.GatheringUpdateRequest;
+import com.whatsuphouse.backend.domain.gathering.admin.dto.response.AdminGatheringResponse;
 import com.whatsuphouse.backend.domain.gathering.common.dto.response.GatheringDetailResponse;
 import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
+import com.whatsuphouse.backend.domain.gathering.enums.GatheringStatus;
 import com.whatsuphouse.backend.domain.gathering.repository.GatheringRepository;
 import com.whatsuphouse.backend.domain.location.entity.Location;
 import com.whatsuphouse.backend.domain.location.repository.LocationRepository;
@@ -14,7 +19,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -23,6 +33,49 @@ public class AdminGatheringService {
 
     private final GatheringRepository gatheringRepository;
     private final LocationRepository locationRepository;
+    private final ApplicationRepository applicationRepository;
+
+    public List<AdminGatheringResponse> listGatherings(
+            GatheringStatus status, LocalDate eventDate, LocalDate from, LocalDate to) {
+
+        List<Gathering> gatherings = resolveGatherings(status, eventDate, from, to);
+        if (gatherings.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<UUID> gatheringIds = gatherings.stream().map(Gathering::getId).toList();
+
+        Map<UUID, Map<ApplicationStatus, Long>> countMap = applicationRepository
+                .countByGatheringIdsGroupByStatus(gatheringIds)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        ApplicationCountProjection::getGatheringId,
+                        Collectors.groupingBy(
+                                ApplicationCountProjection::getStatus,
+                                Collectors.summingLong(ApplicationCountProjection::getCount))));
+
+        return gatherings.stream()
+                .map(g -> AdminGatheringResponse.from(g, countMap.getOrDefault(g.getId(), Map.of())))
+                .toList();
+    }
+
+    private List<Gathering> resolveGatherings(
+            GatheringStatus status, LocalDate eventDate, LocalDate from, LocalDate to) {
+
+        if (eventDate != null) {
+            return status != null
+                    ? gatheringRepository.findByEventDateAndStatusAndDeletedAtIsNull(eventDate, status)
+                    : gatheringRepository.findByEventDateAndDeletedAtIsNull(eventDate);
+        }
+        if (from != null && to != null) {
+            return status != null
+                    ? gatheringRepository.findByEventDateBetweenAndStatusAndDeletedAtIsNull(from, to, status)
+                    : gatheringRepository.findByEventDateBetweenAndDeletedAtIsNull(from, to);
+        }
+        return status != null
+                ? gatheringRepository.findByStatusAndDeletedAtIsNull(status)
+                : gatheringRepository.findByDeletedAtIsNull();
+    }
 
     @Transactional
     public GatheringDetailResponse createGathering(GatheringCreateRequest request) {

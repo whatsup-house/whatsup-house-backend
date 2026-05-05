@@ -24,6 +24,7 @@ public enum ErrorCode {
 
     // User
     DUPLICATE_NICKNAME("이미 사용 중인 닉네임입니다.", HttpStatus.CONFLICT),
+    INVALID_PAGE_SIZE("페이지 사이즈는 1 이상 100 이하여야 합니다.", HttpStatus.BAD_REQUEST),
 
     // Gathering
     GATHERING_NOT_FOUND("존재하지 않는 게더링입니다.", HttpStatus.NOT_FOUND),

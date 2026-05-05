@@ -1,8 +1,10 @@
 package com.whatsuphouse.backend.domain.gathering.admin.service;
 
+import com.whatsuphouse.backend.domain.application.repository.ApplicationRepository;
 import com.whatsuphouse.backend.domain.gathering.admin.dto.request.GatheringCreateRequest;
 import com.whatsuphouse.backend.domain.gathering.admin.dto.request.GatheringStatusRequest;
 import com.whatsuphouse.backend.domain.gathering.admin.dto.request.GatheringUpdateRequest;
+import com.whatsuphouse.backend.domain.gathering.admin.dto.response.AdminGatheringResponse;
 import com.whatsuphouse.backend.domain.gathering.common.dto.response.GatheringDetailResponse;
 import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
 import com.whatsuphouse.backend.domain.gathering.enums.GatheringStatus;
@@ -23,6 +25,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,6 +42,9 @@ class AdminGatheringServiceTest {
 
     @Mock
     private LocationRepository locationRepository;
+
+    @Mock
+    private ApplicationRepository applicationRepository;
 
     @InjectMocks
     private AdminGatheringService adminGatheringService;
@@ -74,6 +80,71 @@ class AdminGatheringServiceTest {
                 .thumbnailUrl("https://example.com/thumb.jpg")
                 .build();
         ReflectionTestUtils.setField(gathering, "id", gatheringId);
+    }
+
+    // ── listGatherings() ─────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("필터 없이 전체 게더링 목록 반환")
+    void listGatherings_noFilter_returnsAll() {
+        // GIVEN
+        given(gatheringRepository.findByDeletedAtIsNull()).willReturn(List.of(gathering));
+        given(applicationRepository.countByGatheringIdsGroupByStatus(List.of(gatheringId)))
+                .willReturn(List.of());
+
+        // WHEN
+        List<AdminGatheringResponse> result = adminGatheringService.listGatherings(null, null, null, null);
+
+        // THEN
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getTitle()).isEqualTo("재즈 게더링");
+        assertThat(result.get(0).getApplicantCount()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("status 필터로 게더링 목록 반환")
+    void listGatherings_withStatus_returnsFiltered() {
+        // GIVEN
+        given(gatheringRepository.findByStatusAndDeletedAtIsNull(GatheringStatus.OPEN)).willReturn(List.of(gathering));
+        given(applicationRepository.countByGatheringIdsGroupByStatus(List.of(gatheringId)))
+                .willReturn(List.of());
+
+        // WHEN
+        List<AdminGatheringResponse> result = adminGatheringService.listGatherings(GatheringStatus.OPEN, null, null, null);
+
+        // THEN
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getStatus()).isEqualTo(GatheringStatus.OPEN);
+    }
+
+    @Test
+    @DisplayName("조건에 맞는 게더링이 없으면 빈 리스트 반환")
+    void listGatherings_noMatch_returnsEmpty() {
+        // GIVEN
+        given(gatheringRepository.findByStatusAndDeletedAtIsNull(GatheringStatus.COMPLETED)).willReturn(List.of());
+
+        // WHEN
+        List<AdminGatheringResponse> result = adminGatheringService.listGatherings(GatheringStatus.COMPLETED, null, null, null);
+
+        // THEN
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("eventDate 필터로 게더링 목록 반환")
+    void listGatherings_withEventDate_returnsFiltered() {
+        // GIVEN
+        LocalDate eventDate = LocalDate.now().plusDays(7);
+        given(gatheringRepository.findByEventDateAndDeletedAtIsNull(eventDate)).willReturn(List.of(gathering));
+        given(applicationRepository.countByGatheringIdsGroupByStatus(List.of(gatheringId)))
+                .willReturn(List.of());
+
+        // WHEN
+        List<AdminGatheringResponse> result = adminGatheringService.listGatherings(null, eventDate, null, null);
+
+        // THEN
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getEventDate()).isEqualTo(eventDate);
     }
 
     // ── createGathering() ────────────────────────────────────────────────────

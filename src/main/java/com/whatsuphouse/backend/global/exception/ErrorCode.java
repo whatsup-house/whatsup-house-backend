@@ -24,6 +24,7 @@ public enum ErrorCode {
 
     // User
     DUPLICATE_NICKNAME("이미 사용 중인 닉네임입니다.", HttpStatus.CONFLICT),
+    INVALID_PAGE_SIZE("페이지 사이즈는 1 이상 100 이하여야 합니다.", HttpStatus.BAD_REQUEST),
 
     // Gathering
     GATHERING_NOT_FOUND("존재하지 않는 게더링입니다.", HttpStatus.NOT_FOUND),
@@ -34,6 +35,7 @@ public enum ErrorCode {
     APPLICATION_NOT_FOUND("존재하지 않는 신청입니다.", HttpStatus.NOT_FOUND),
     ALREADY_APPLIED("이미 신청한 게더링입니다.", HttpStatus.CONFLICT),
     CANNOT_CANCEL("취소할 수 없는 신청입니다.", HttpStatus.BAD_REQUEST),
+    CANNOT_DELETE("출석 완료된 신청은 삭제할 수 없습니다.", HttpStatus.BAD_REQUEST),
     APPLICATION_FORBIDDEN("본인의 신청이 아닙니다.", HttpStatus.FORBIDDEN),
     GUEST_PHONE_REQUIRED("비회원 신청 시 전화번호는 필수입니다.", HttpStatus.BAD_REQUEST),
 

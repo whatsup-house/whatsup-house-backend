@@ -40,3 +40,9 @@ description: 커밋 메시지, 브랜치명, 작업 흐름 컨벤션
 2. 브랜치 생성
 3. 작업 단위별 커밋 (한 커밋 = 한 논리적 변경)
 4. PR 생성 → 리뷰 → develop 병합
+
+---
+
+## 4. PR base 브랜치
+
+- **PR의 base(target) 브랜치는 항상 `develop`** — `main`으로 직접 PR 금지

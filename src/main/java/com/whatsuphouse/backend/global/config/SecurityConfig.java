@@ -37,6 +37,7 @@ public class SecurityConfig {
     private static final String[] PERMIT_GET = {
         "/api/gatherings/**",
         "/api/locations/**",
+        "/api/home/**",
         "/api/users/check-nickname",
         "/api/users/check-email"
     };

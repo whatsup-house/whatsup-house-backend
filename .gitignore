@@ -54,3 +54,6 @@ logs
 *.tfvars
 !*.tfvars.example
 .terraform.lock.hcl
+
+# macOS
+.DS_Store

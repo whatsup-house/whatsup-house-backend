@@ -27,8 +27,7 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
-class
-AdminUserServiceTest {
+class AdminUserServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -64,6 +63,15 @@ AdminUserServiceTest {
     @DisplayName("size가 0이면 INVALID_PAGE_SIZE 예외 발생")
     void listUsers_throwsWhenSizeIsZero() {
         assertThatThrownBy(() -> adminUserService.listUsers(null, 0, 0))
+                .isInstanceOf(CustomException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.INVALID_PAGE_SIZE);
+    }
+
+    @Test
+    @DisplayName("page가 음수이면 INVALID_PAGE_SIZE 예외 발생")
+    void listUsers_throwsWhenPageIsNegative() {
+        assertThatThrownBy(() -> adminUserService.listUsers(null, -1, 20))
                 .isInstanceOf(CustomException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.INVALID_PAGE_SIZE);

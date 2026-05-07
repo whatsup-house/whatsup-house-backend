@@ -21,6 +21,9 @@ public class AdminUserService {
     private final UserRepository userRepository;
 
     public UserAdminPageResponse listUsers(String search, int page, int size) {
+        if (page < 0) {
+            throw new CustomException(ErrorCode.INVALID_PAGE_SIZE);
+        }
         if (size < 1 || size > 100) {
             throw new CustomException(ErrorCode.INVALID_PAGE_SIZE);
         }

@@ -1,19 +1,18 @@
-# /implement
+# /develop
 
-구글 드라이브 기획 문서를 읽고, Jira 이슈를 생성하고, 코드를 구현하고, 검토 후 완료 처리까지 자동으로 수행한다.
+이미 Jira에 등록된 이슈를 기반으로 브랜치를 생성하고, 코드 구현·테스트·검토 후 완료 처리까지 자동으로 수행한다.
 
 ## 사용법
 
 ```
-/implement {구현할 기능 설명}
+/develop {KAN-XX}
 ```
 
 ---
 
 ## 0단계 — 사전 연결 체크
 
-작업 시작 전, 아래 세 가지 연결 상태를 먼저 확인한다:
-- Google Drive MCP: `search_files`로 테스트 조회
+작업 시작 전, 아래 두 가지 연결 상태를 확인한다:
 - Jira MCP: `atlassianUserInfo`로 현재 사용자 조회
 - gh CLI: `gh auth status`로 GitHub 인증 확인
 
@@ -21,15 +20,17 @@
 
 ---
 
-## 1단계 — 문서 읽기
+## 1단계 — 이슈 파악
 
-`.claude/agents/spec-reader.md` 역할을 수행한다.
+`.claude/agents/jira-manager.md` 역할을 수행한다.
+
+- `{KAN-XX}` 이슈를 조회해 [설명] [요구사항] [API] [Request] [Response] [DB] [예외] 섹션을 파악한다.
 
 ---
 
-## 2단계 — Jira 이슈 생성 + 브랜치 생성
+## 2단계 — 브랜치 생성
 
-`.claude/agents/jira-manager.md` 역할을 수행한다. (이슈 생성 + 브랜치 생성)
+`.claude/agents/jira-manager.md` 역할을 수행한다. (브랜치 생성만)
 
 ---
 

@@ -23,7 +23,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -78,12 +78,12 @@ class AdminUserServiceTest {
     }
 
     @Test
-    @DisplayName("search가 빈 문자열이면 null로 정규화하여 전체 조회")
-    void listUsers_normalizesBlankSearchToNull() {
+    @DisplayName("search가 빈 문자열이면 그대로 전달하여 전체 조회")
+    void listUsers_blankSearchPassedThrough() {
         Object[] row = {user, 3L, 2L};
         Page<Object[]> rawPage = new PageImpl<Object[]>(Collections.singletonList(row), PageRequest.of(0, 20), 1);
 
-        given(userRepository.findUsersWithApplicationStats(isNull(), any())).willReturn(rawPage);
+        given(userRepository.findUsersWithApplicationStats(eq("   "), any())).willReturn(rawPage);
 
         UserAdminPageResponse result = adminUserService.listUsers("   ", 0, 20);
 

@@ -28,10 +28,8 @@ public class AdminUserService {
             throw new CustomException(ErrorCode.INVALID_PAGE_SIZE);
         }
 
-        String normalizedSearch = (search != null && search.isBlank()) ? null : search;
-
         Pageable pageable = PageRequest.of(page, size);
-        Page<Object[]> rawPage = userRepository.findUsersWithApplicationStats(normalizedSearch, pageable);
+        Page<Object[]> rawPage = userRepository.findUsersWithApplicationStats(search, pageable);
 
         Page<UserAdminListResponse> dtoPage = rawPage.map(row ->
                 UserAdminListResponse.of((User) row[0], (Number) row[1], (Number) row[2])

@@ -47,7 +47,12 @@ public enum ErrorCode {
 
     // Room / Item
     ITEM_NOT_FOUND("존재하지 않는 아이템입니다.", HttpStatus.NOT_FOUND),
-    MILEAGE_NOT_ENOUGH("마일리지가 부족합니다.", HttpStatus.BAD_REQUEST);
+    MILEAGE_NOT_ENOUGH("마일리지가 부족합니다.", HttpStatus.BAD_REQUEST),
+
+    // Carousel
+    SLIDE_NOT_FOUND("존재하지 않는 슬라이드입니다.", HttpStatus.NOT_FOUND),
+    GATHERING_ID_REQUIRED("GATHERING 타입은 gatheringId가 필수입니다.", HttpStatus.BAD_REQUEST),
+    SLIDE_CONTENT_REQUIRED("STORY 타입은 content가 필수입니다.", HttpStatus.BAD_REQUEST);
 
     private final String message;
     private final HttpStatus status;

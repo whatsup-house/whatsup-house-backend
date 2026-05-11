@@ -408,9 +408,8 @@ class AdminCarouselServiceTest {
         CarouselSlideOrderRequest request = new CarouselSlideOrderRequest();
         ReflectionTestUtils.setField(request, "slideIds", List.of(slideId1, slideId2, slideId3));
 
-        given(carouselSlideRepository.findByIdAndDeletedAtIsNull(slideId1)).willReturn(Optional.of(slide1));
-        given(carouselSlideRepository.findByIdAndDeletedAtIsNull(slideId2)).willReturn(Optional.of(slide2));
-        given(carouselSlideRepository.findByIdAndDeletedAtIsNull(slideId3)).willReturn(Optional.of(slide3));
+        given(carouselSlideRepository.findAllByIdInAndDeletedAtIsNull(List.of(slideId1, slideId2, slideId3)))
+                .willReturn(List.of(slide1, slide2, slide3));
 
         // when
         adminCarouselService.reorderSlides(request);
@@ -429,7 +428,8 @@ class AdminCarouselServiceTest {
         CarouselSlideOrderRequest request = new CarouselSlideOrderRequest();
         ReflectionTestUtils.setField(request, "slideIds", List.of(unknownId));
 
-        given(carouselSlideRepository.findByIdAndDeletedAtIsNull(unknownId)).willReturn(Optional.empty());
+        given(carouselSlideRepository.findAllByIdInAndDeletedAtIsNull(List.of(unknownId)))
+                .willReturn(List.of());
 
         // when & then
         assertThatThrownBy(() -> adminCarouselService.reorderSlides(request))

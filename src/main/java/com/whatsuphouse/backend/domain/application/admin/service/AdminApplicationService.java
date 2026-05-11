@@ -23,19 +23,7 @@ public class AdminApplicationService {
     private final ApplicationRepository applicationRepository;
 
     public List<AdminApplicationResponse> getAllApplications(UUID gatheringId, ApplicationStatus status) {
-        if (gatheringId != null) {
-            return applicationRepository.findByGatheringIdAndDeletedAtIsNull(gatheringId)
-                    .stream()
-                    .map(AdminApplicationResponse::from)
-                    .toList();
-        }
-        if (status != null) {
-            return applicationRepository.findByStatusAndDeletedAtIsNull(status)
-                    .stream()
-                    .map(AdminApplicationResponse::from)
-                    .toList();
-        }
-        return applicationRepository.findByDeletedAtIsNull()
+        return applicationRepository.findApplications(gatheringId, status)
                 .stream()
                 .map(AdminApplicationResponse::from)
                 .toList();
@@ -72,9 +60,8 @@ public class AdminApplicationService {
         ApplicationStatus newStatus = request.getStatus();
         switch (newStatus) {
             case CONFIRMED -> application.confirm();
-            case CANCELLED -> application.cancel();
             case ATTENDED -> application.attend();
-            default -> throw new CustomException(ErrorCode.CANNOT_CANCEL);
+            default -> throw new CustomException(ErrorCode.INVALID_STATUS_TRANSITION);
         }
 
         return AdminApplicationResponse.from(application);

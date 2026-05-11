@@ -21,4 +21,6 @@ public interface CarouselSlideRepository extends JpaRepository<CarouselSlide, UU
     Optional<Integer> findMaxSortOrder();
 
     Optional<CarouselSlide> findByIdAndDeletedAtIsNull(UUID id);
+
+    List<CarouselSlide> findAllByIdInAndDeletedAtIsNull(List<UUID> ids);
 }

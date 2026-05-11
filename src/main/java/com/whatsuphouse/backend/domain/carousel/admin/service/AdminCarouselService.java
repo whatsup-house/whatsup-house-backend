@@ -17,7 +17,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -111,8 +114,12 @@ public class AdminCarouselService {
     @Transactional
     public void reorderSlides(CarouselSlideOrderRequest request) {
         List<UUID> slideIds = request.getSlideIds();
+        Map<UUID, CarouselSlide> slideMap = carouselSlideRepository.findAllByIdInAndDeletedAtIsNull(slideIds)
+                .stream()
+                .collect(Collectors.toMap(CarouselSlide::getId, s -> s));
+
         for (int i = 0; i < slideIds.size(); i++) {
-            CarouselSlide slide = carouselSlideRepository.findByIdAndDeletedAtIsNull(slideIds.get(i))
+            CarouselSlide slide = Optional.ofNullable(slideMap.get(slideIds.get(i)))
                     .orElseThrow(() -> new CustomException(ErrorCode.SLIDE_NOT_FOUND));
             slide.update(slide.getType(), slide.getTitle(), slide.getContent(), slide.getImageUrl(), slide.getGathering(), i);
         }

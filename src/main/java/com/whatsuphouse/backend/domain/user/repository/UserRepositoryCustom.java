@@ -5,5 +5,5 @@ import org.springframework.data.domain.Pageable;
 
 public interface UserRepositoryCustom {
 
-    Page<Object[]> findUsersWithApplicationStats(String search, Pageable pageable);
+    Page<UserApplicationStatsRow> findUsersWithApplicationStats(String search, Pageable pageable);
 }

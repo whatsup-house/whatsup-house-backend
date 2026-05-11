@@ -5,6 +5,7 @@ import com.whatsuphouse.backend.domain.application.repository.ApplicationReposit
 import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
 import com.whatsuphouse.backend.domain.gathering.repository.GatheringRepository;
 import com.whatsuphouse.backend.domain.user.entity.User;
+import com.whatsuphouse.backend.domain.user.repository.UserApplicationStatsRow;
 import com.whatsuphouse.backend.global.common.enums.Gender;
 import com.whatsuphouse.backend.global.config.TestJpaConfig;
 import org.junit.jupiter.api.BeforeEach;
@@ -98,41 +99,29 @@ class AdminUserRepositoryTest {
     @Test
     @DisplayName("search=null이면 삭제되지 않은 전체 회원 반환")
     void findUsersWithStats_nullSearch_returnsAllActiveUsers() {
-        // TODO(human): search=null, page=0, size=20으로 쿼리 실행 후
-        // 결과의 totalElements가 1이고 row[0]이 user임을 검증해줘.
-        Page<Object[]> result = userRepository.findUsersWithApplicationStats(null, PageRequest.of(0, 20));
+        Page<UserApplicationStatsRow> result = userRepository.findUsersWithApplicationStats(null, PageRequest.of(0, 20));
         assertThat(result.getTotalElements()).isEqualTo(1);
-        assertThat(((User) result.getContent().get(0)[0]).getEmail()).isEqualTo(user.getEmail());
+        assertThat(result.getContent().get(0).user().getEmail()).isEqualTo(user.getEmail());
     }
 
     @Test
     @DisplayName("닉네임 부분 일치 검색")
     void findUsersWithStats_searchByNickname() {
-        // TODO(human): search="gild"로 조회 시 user가 포함되는지,
-        // search="xyz"로 조회 시 결과가 비어있는지 검증해줘.
-        // "gild" → user가 있어야 함
-        Page<Object[]> hit = userRepository.findUsersWithApplicationStats("gild",
-                PageRequest.of(0, 20));
+        Page<UserApplicationStatsRow> hit = userRepository.findUsersWithApplicationStats("gild", PageRequest.of(0, 20));
         assertThat(hit.getTotalElements()).isEqualTo(1);
-        assertThat(((User)
-                hit.getContent().get(0)[0]).getEmail()).isEqualTo("test@example.com");
+        assertThat(hit.getContent().get(0).user().getEmail()).isEqualTo("test@example.com");
 
-        // "xyz" → 아무도 없어야 함
-        Page<Object[]> miss = userRepository.findUsersWithApplicationStats("xyz",
-                PageRequest.of(0, 20));
+        Page<UserApplicationStatsRow> miss = userRepository.findUsersWithApplicationStats("xyz", PageRequest.of(0, 20));
         assertThat(miss.getTotalElements()).isEqualTo(0);
     }
 
     @Test
     @DisplayName("totalApplications는 CANCELLED(soft-deleted) 제외, attendedCount는 ATTENDED만 집계")
     void findUsersWithStats_aggregatesCorrectly() {
-        // TODO(human): row[1](totalApplications)이 2L(PENDING+ATTENDED),
-        // row[2](attendedCount)가 1L임을 검증해줘.
-        Page<Object[]> result = userRepository.findUsersWithApplicationStats(null,
-                PageRequest.of(0, 20));
-        Object[] row = result.getContent().get(0);
-        assertThat(((Number) row[1]).longValue()).isEqualTo(2L);  // PENDING + ATTENDED
-        assertThat(((Number) row[2]).longValue()).isEqualTo(1L);  // ATTENDED만
+        Page<UserApplicationStatsRow> result = userRepository.findUsersWithApplicationStats(null, PageRequest.of(0, 20));
+        UserApplicationStatsRow row = result.getContent().get(0);
+        assertThat(row.totalApplications()).isEqualTo(2L);
+        assertThat(row.attendedCount()).isEqualTo(1L);
     }
 
     @Test
@@ -151,10 +140,10 @@ class AdminUserRepositoryTest {
         em.flush();
         em.clear();
 
-        Page<Object[]> result = userRepository.findUsersWithApplicationStats(null, PageRequest.of(0, 20));
+        Page<UserApplicationStatsRow> result = userRepository.findUsersWithApplicationStats(null, PageRequest.of(0, 20));
 
         assertThat(result.getContent())
-                .extracting(row -> ((User) row[0]).getEmail())
+                .extracting(row -> row.user().getEmail())
                 .doesNotContain("deleted@example.com");
     }
 }

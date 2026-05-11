@@ -27,6 +27,9 @@ public class UserAdminListResponse {
     @Schema(description = "관리자 여부", example = "false")
     private boolean isAdmin;
 
+    @Schema(description = "마일리지 잔액", example = "1000")
+    private Integer mileage;
+
     @Schema(description = "총 신청 횟수 (취소 제외)", example = "5")
     private long totalApplications;
 
@@ -43,6 +46,7 @@ public class UserAdminListResponse {
                 .nickname(user.getNickname())
                 .phone(user.getPhone())
                 .isAdmin(user.isAdmin())
+                .mileage(user.getMileageBalance())
                 .totalApplications(totalApplications != null ? totalApplications.longValue() : 0L)
                 .attendedCount(attendedCount != null ? attendedCount.longValue() : 0L)
                 .createdAt(user.getCreatedAt())

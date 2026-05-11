@@ -23,6 +23,7 @@ public class ProfileResponse {
     private String job;
     private String intro;
     private boolean isAdmin;
+    private Integer mileage;
     private LocalDateTime createdAt;
 
     public static ProfileResponse from(User user) {
@@ -38,6 +39,7 @@ public class ProfileResponse {
                 .job(user.getJob())
                 .intro(user.getIntro())
                 .isAdmin(user.isAdmin())
+                .mileage(user.getMileageBalance())
                 .createdAt(user.getCreatedAt())
                 .build();
     }

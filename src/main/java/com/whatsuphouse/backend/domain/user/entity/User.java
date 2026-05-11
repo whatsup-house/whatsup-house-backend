@@ -59,6 +59,9 @@ public class User extends BaseEntity {
     @Column(name = "is_admin", nullable = false)
     private boolean isAdmin = false;
 
+    @Column(name = "mileage_balance", nullable = false)
+    private Integer mileageBalance = 0;
+
     @Builder
     public User(String email, String password, String name, Gender gender, Integer age, String nickname, String phone) {
         this.email = email;
@@ -82,4 +85,13 @@ public class User extends BaseEntity {
         this.job = job;
         this.intro = intro;
     }
+
+    public Integer addMileage(int amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("적립 마일리지는 0보다 커야 합니다.");
+        }
+        this.mileageBalance += amount;
+        return this.mileageBalance;
+    }
+
 }

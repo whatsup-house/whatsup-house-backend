@@ -5,6 +5,7 @@ import com.whatsuphouse.backend.domain.auth.dto.request.RegisterRequest;
 import com.whatsuphouse.backend.domain.auth.dto.response.LoginResponse;
 import com.whatsuphouse.backend.domain.auth.dto.response.RegisterResponse;
 import com.whatsuphouse.backend.domain.auth.dto.response.TokenRefreshResponse;
+import com.whatsuphouse.backend.domain.mileage.service.MileageService;
 import com.whatsuphouse.backend.domain.user.entity.User;
 import com.whatsuphouse.backend.domain.user.repository.UserRepository;
 import com.whatsuphouse.backend.global.auth.JwtTokenProvider;
@@ -31,6 +32,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,6 +44,7 @@ class AuthServiceTest {
     @Mock private JwtTokenProvider jwtTokenProvider;
     @Mock private StringRedisTemplate redisTemplate;
     @Mock private ValueOperations<String, String> valueOperations;
+    @Mock private MileageService mileageService;
 
     @InjectMocks
     private AuthService authService;
@@ -74,10 +78,18 @@ class AuthServiceTest {
         given(userRepository.existsByNickname("nickname1")).willReturn(false);
         given(passwordEncoder.encode(any())).willReturn("encodedPassword");
         given(userRepository.save(any())).willReturn(user);
+        doAnswer(invocation -> {
+            User signupUser = invocation.getArgument(0);
+            signupUser.addMileage(MileageService.SIGNUP_REWARD_AMOUNT);
+            return null;
+        }).when(mileageService).rewardSignup(any(User.class));
 
         RegisterResponse response = authService.register(request);
 
         assertThat(response).isNotNull();
+        assertThat(response.getMileageRewarded()).isEqualTo(1000);
+        assertThat(response.getMileageBalance()).isEqualTo(1000);
+        verify(mileageService).rewardSignup(any(User.class));
     }
 
     @Test
@@ -89,6 +101,7 @@ class AuthServiceTest {
         assertThatThrownBy(() -> authService.register(request))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.EMAIL_ALREADY_EXISTS);
+        verify(mileageService, never()).rewardSignup(any(User.class));
     }
 
     @Test
@@ -101,6 +114,7 @@ class AuthServiceTest {
         assertThatThrownBy(() -> authService.register(request))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_NICKNAME);
+        verify(mileageService, never()).rewardSignup(any(User.class));
     }
 
     // ── login() ───────────────────────────────────────────────────────────────
@@ -120,6 +134,7 @@ class AuthServiceTest {
 
         assertThat(response.getAccessToken()).isEqualTo("accessToken");
         assertThat(response.getRefreshToken()).isEqualTo("refreshToken");
+        assertThat(response.getUser().getMileage()).isEqualTo(0);
     }
 
     @Test

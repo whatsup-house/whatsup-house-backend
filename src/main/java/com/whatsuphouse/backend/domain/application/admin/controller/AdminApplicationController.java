@@ -3,6 +3,7 @@ package com.whatsuphouse.backend.domain.application.admin.controller;
 import com.whatsuphouse.backend.domain.application.admin.dto.request.AdminApplicationStatusRequest;
 import com.whatsuphouse.backend.domain.application.admin.dto.response.AdminApplicationDeleteResponse;
 import com.whatsuphouse.backend.domain.application.admin.dto.response.AdminApplicationResponse;
+import com.whatsuphouse.backend.domain.application.admin.dto.response.AdminApplicationStatusResponse;
 import com.whatsuphouse.backend.domain.application.admin.service.AdminApplicationService;
 import com.whatsuphouse.backend.domain.application.enums.ApplicationStatus;
 import com.whatsuphouse.backend.global.common.ApiResult;
@@ -52,7 +53,7 @@ public class AdminApplicationController {
 
     @Operation(summary = "신청 상태 변경")
     @PatchMapping("/{id}/status")
-    public ResponseEntity<ApiResult<AdminApplicationResponse>> changeStatus(
+    public ResponseEntity<ApiResult<AdminApplicationStatusResponse>> changeStatus(
             @PathVariable UUID id,
             @Valid @RequestBody AdminApplicationStatusRequest request
     ) {

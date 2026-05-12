@@ -3,10 +3,16 @@ package com.whatsuphouse.backend.domain.application.admin.service;
 import com.whatsuphouse.backend.domain.application.admin.dto.request.AdminApplicationStatusRequest;
 import com.whatsuphouse.backend.domain.application.admin.dto.response.AdminApplicationDeleteResponse;
 import com.whatsuphouse.backend.domain.application.admin.dto.response.AdminApplicationResponse;
+import com.whatsuphouse.backend.domain.application.admin.dto.response.AdminApplicationStatusResponse;
 import com.whatsuphouse.backend.domain.application.entity.Application;
 import com.whatsuphouse.backend.domain.application.enums.ApplicationStatus;
 import com.whatsuphouse.backend.domain.application.repository.ApplicationRepository;
 import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
+import com.whatsuphouse.backend.domain.mileage.entity.MileageHistory;
+import com.whatsuphouse.backend.domain.mileage.enums.MileageType;
+import com.whatsuphouse.backend.domain.mileage.service.MileageService;
+import com.whatsuphouse.backend.domain.user.entity.User;
+import com.whatsuphouse.backend.global.common.enums.Gender;
 import com.whatsuphouse.backend.global.exception.CustomException;
 import com.whatsuphouse.backend.global.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +31,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,6 +40,9 @@ class AdminApplicationServiceTest {
 
     @Mock
     private ApplicationRepository applicationRepository;
+
+    @Mock
+    private MileageService mileageService;
 
     @InjectMocks
     private AdminApplicationService adminApplicationService;
@@ -187,10 +198,11 @@ class AdminApplicationServiceTest {
         AdminApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.CONFIRMED);
 
         // WHEN
-        AdminApplicationResponse response = adminApplicationService.changeStatus(applicationId, request);
+        AdminApplicationStatusResponse response = adminApplicationService.changeStatus(applicationId, request);
 
         // THEN
         assertThat(response.getStatus()).isEqualTo(ApplicationStatus.CONFIRMED);
+        assertThat(response.getMileageRewarded()).isNull();
     }
 
     @Test
@@ -201,7 +213,7 @@ class AdminApplicationServiceTest {
         AdminApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.CANCELLED);
 
         // WHEN
-        AdminApplicationResponse response = adminApplicationService.changeStatus(applicationId, request);
+        AdminApplicationStatusResponse response = adminApplicationService.changeStatus(applicationId, request);
 
         // THEN
         assertThat(response.getStatus()).isEqualTo(ApplicationStatus.CANCELLED);
@@ -209,17 +221,68 @@ class AdminApplicationServiceTest {
     }
 
     @Test
-    @DisplayName("ATTENDED로 상태 변경 성공")
-    void changeStatus_toAttended_success() {
-        // GIVEN
+    @DisplayName("ATTENDED로 상태 변경 성공 - 게스트 신청이면 마일리지 미지급")
+    void changeStatus_toAttended_guest_noMileage() {
+        // GIVEN — application.user == null (게스트)
         given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.of(application));
         AdminApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.ATTENDED);
 
         // WHEN
-        AdminApplicationResponse response = adminApplicationService.changeStatus(applicationId, request);
+        AdminApplicationStatusResponse response = adminApplicationService.changeStatus(applicationId, request);
 
         // THEN
         assertThat(response.getStatus()).isEqualTo(ApplicationStatus.ATTENDED);
+        assertThat(response.getMileageRewarded()).isNull();
+        assertThat(response.getUserMileageAfter()).isNull();
+    }
+
+    @Test
+    @DisplayName("ATTENDED로 상태 변경 성공 - 회원 신청이면 1000 마일리지 지급")
+    void changeStatus_toAttended_member_mileageRewarded() {
+        // GIVEN
+        User user = User.builder()
+                .email("test@test.com").password("pw").name("홍길동")
+                .gender(Gender.MALE).age(25).nickname("nick").build();
+        ReflectionTestUtils.setField(user, "id", UUID.randomUUID());
+
+        Application memberApplication = Application.builder()
+                .bookingNumber("WH260428-XYZ999")
+                .gathering(gathering)
+                .user(user)
+                .name("홍길동")
+                .phone("01012345678")
+                .build();
+        ReflectionTestUtils.setField(memberApplication, "id", applicationId);
+
+        MileageHistory history = MileageHistory.builder()
+                .user(user).type(MileageType.ATTENDANCE).amount(1000).balanceAfter(1000)
+                .relatedId(applicationId).build();
+
+        given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.of(memberApplication));
+        given(mileageService.rewardAttendance(eq(user), eq(applicationId))).willReturn(history);
+        AdminApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.ATTENDED);
+
+        // WHEN
+        AdminApplicationStatusResponse response = adminApplicationService.changeStatus(applicationId, request);
+
+        // THEN
+        assertThat(response.getStatus()).isEqualTo(ApplicationStatus.ATTENDED);
+        assertThat(response.getMileageRewarded()).isEqualTo(1000);
+        assertThat(response.getUserMileageAfter()).isEqualTo(1000);
+    }
+
+    @Test
+    @DisplayName("이미 ATTENDED 상태인 신청에 ATTENDED 요청 시 409 예외 발생")
+    void changeStatus_alreadyAttended_throwsConflict() {
+        // GIVEN
+        application.attend();
+        given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.of(application));
+        AdminApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.ATTENDED);
+
+        // WHEN & THEN
+        assertThatThrownBy(() -> adminApplicationService.changeStatus(applicationId, request))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ALREADY_ATTENDED);
     }
 
     @Test

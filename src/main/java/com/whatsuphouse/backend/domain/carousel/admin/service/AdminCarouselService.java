@@ -12,6 +12,7 @@ import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
 import com.whatsuphouse.backend.domain.gathering.repository.GatheringRepository;
 import com.whatsuphouse.backend.global.exception.CustomException;
 import com.whatsuphouse.backend.global.exception.ErrorCode;
+import com.whatsuphouse.backend.global.storage.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,7 @@ public class AdminCarouselService {
 
     private final CarouselSlideRepository carouselSlideRepository;
     private final GatheringRepository gatheringRepository;
+    private final StorageService storageService;
 
     public List<AdminCarouselSlideResponse> listSlides() {
         return carouselSlideRepository.findByDeletedAtIsNullOrderBySortOrderAscCreatedAtAsc()
@@ -54,11 +56,13 @@ public class AdminCarouselService {
         String content = request.getType() == SlideType.GATHERING ? null : request.getContent();
         Gathering finalGathering = request.getType() != SlideType.GATHERING ? null : gathering;
 
+        String imageUrl = storageService.move(request.getTempPath(), "carousel");
+
         CarouselSlide slide = CarouselSlide.builder()
                 .type(request.getType())
                 .title(request.getTitle())
                 .content(content)
-                .imageUrl(request.getImageUrl())
+                .imageUrl(imageUrl)
                 .gathering(finalGathering)
                 .sortOrder(sortOrder)
                 .isActive(false)
@@ -87,7 +91,8 @@ public class AdminCarouselService {
                 ? request.getSortOrder()
                 : slide.getSortOrder();
 
-        slide.update(request.getType(), request.getTitle(), content, request.getImageUrl(), finalGathering, sortOrder);
+        String imageUrl = storageService.move(request.getTempPath(), "carousel");
+        slide.update(request.getType(), request.getTitle(), content, imageUrl, finalGathering, sortOrder);
 
         return AdminCarouselSlideResponse.from(slide);
     }

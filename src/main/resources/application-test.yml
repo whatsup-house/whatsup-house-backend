@@ -23,3 +23,8 @@ spring:
 
 jwt:
   secret: test-secret-key-for-ci-only-minimum-32-chars
+
+supabase:
+  url: http://localhost
+  key: test-key
+  bucket: test-bucket

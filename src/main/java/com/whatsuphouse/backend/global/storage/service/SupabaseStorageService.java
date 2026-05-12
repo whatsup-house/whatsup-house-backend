@@ -2,6 +2,8 @@ package com.whatsuphouse.backend.global.storage.service;
 
 import com.whatsuphouse.backend.global.exception.CustomException;
 import com.whatsuphouse.backend.global.exception.ErrorCode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,8 @@ import java.util.UUID;
 
 @Service
 public class SupabaseStorageService implements StorageService{
+
+    private static final Logger log = LoggerFactory.getLogger(SupabaseStorageService.class);
 
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
 
@@ -48,8 +52,10 @@ public class SupabaseStorageService implements StorageService{
                     .retrieve()
                     .toBodilessEntity();
         } catch (IOException e) {
+            log.error("[Storage] upload IOException: {}", e.getMessage(), e);
             throw new CustomException(ErrorCode.IMAGE_UPLOAD_FAILED);
         } catch (Exception e) {
+            log.error("[Storage] upload Exception: {}", e.getMessage(), e);
             throw new CustomException(ErrorCode.IMAGE_UPLOAD_FAILED);
         }
 
@@ -74,6 +80,7 @@ public class SupabaseStorageService implements StorageService{
                     .retrieve()
                     .toBodilessEntity();
         } catch (Exception e) {
+            log.error("[Storage] move Exception: {}", e.getMessage(), e);
             throw new CustomException(ErrorCode.IMAGE_UPLOAD_FAILED);
         }
 

@@ -39,7 +39,7 @@ public class UserAdminListResponse {
     @Schema(description = "가입일시", example = "2024-01-15T10:30:00")
     private LocalDateTime createdAt;
 
-    public static UserAdminListResponse of(User user, Number totalApplications, Number attendedCount) {
+    public static UserAdminListResponse of(User user, long totalApplications, long attendedCount) {
         return UserAdminListResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -47,8 +47,8 @@ public class UserAdminListResponse {
                 .phone(user.getPhone())
                 .isAdmin(user.isAdmin())
                 .mileage(user.getMileageBalance())
-                .totalApplications(totalApplications != null ? totalApplications.longValue() : 0L)
-                .attendedCount(attendedCount != null ? attendedCount.longValue() : 0L)
+                .totalApplications(totalApplications)
+                .attendedCount(attendedCount)
                 .createdAt(user.getCreatedAt())
                 .build();
     }

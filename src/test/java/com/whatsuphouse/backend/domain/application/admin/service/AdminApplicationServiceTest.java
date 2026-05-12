@@ -79,7 +79,7 @@ class AdminApplicationServiceTest {
     @DisplayName("전체 신청 목록 반환")
     void getAllApplications_returnsList() {
         // GIVEN
-        given(applicationRepository.findByDeletedAtIsNull()).willReturn(List.of(application));
+        given(applicationRepository.findApplications(null, null)).willReturn(List.of(application));
 
         // WHEN
         List<AdminApplicationResponse> result = adminApplicationService.getAllApplications(null, null);
@@ -93,7 +93,7 @@ class AdminApplicationServiceTest {
     @DisplayName("신청이 없으면 빈 리스트 반환")
     void getAllApplications_empty_returnsEmptyList() {
         // GIVEN
-        given(applicationRepository.findByDeletedAtIsNull()).willReturn(List.of());
+        given(applicationRepository.findApplications(null, null)).willReturn(List.of());
 
         // WHEN
         List<AdminApplicationResponse> result = adminApplicationService.getAllApplications(null, null);
@@ -108,7 +108,7 @@ class AdminApplicationServiceTest {
     @DisplayName("게더링별 신청 목록 반환")
     void getApplicationsByGathering_returnsList() {
         // GIVEN
-        given(applicationRepository.findByGatheringIdAndDeletedAtIsNull(gatheringId)).willReturn(List.of(application));
+        given(applicationRepository.findApplications(gatheringId, null)).willReturn(List.of(application));
 
         // WHEN
         List<AdminApplicationResponse> result = adminApplicationService.getAllApplications(gatheringId, null);
@@ -122,7 +122,7 @@ class AdminApplicationServiceTest {
     @DisplayName("해당 게더링에 신청이 없으면 빈 리스트 반환")
     void getApplicationsByGathering_empty_returnsEmptyList() {
         // GIVEN
-        given(applicationRepository.findByGatheringIdAndDeletedAtIsNull(gatheringId)).willReturn(List.of());
+        given(applicationRepository.findApplications(gatheringId, null)).willReturn(List.of());
 
         // WHEN
         List<AdminApplicationResponse> result = adminApplicationService.getAllApplications(gatheringId, null);
@@ -137,7 +137,7 @@ class AdminApplicationServiceTest {
     @DisplayName("상태별 신청 목록 반환")
     void getApplicationsByStatus_returnsList() {
         // GIVEN
-        given(applicationRepository.findByStatusAndDeletedAtIsNull(ApplicationStatus.PENDING)).willReturn(List.of(application));
+        given(applicationRepository.findApplications(null, ApplicationStatus.PENDING)).willReturn(List.of(application));
 
         // WHEN
         List<AdminApplicationResponse> result = adminApplicationService.getAllApplications(null, ApplicationStatus.PENDING);
@@ -151,7 +151,7 @@ class AdminApplicationServiceTest {
     @DisplayName("해당 상태의 신청이 없으면 빈 리스트 반환")
     void getApplicationsByStatus_empty_returnsEmptyList() {
         // GIVEN
-        given(applicationRepository.findByStatusAndDeletedAtIsNull(ApplicationStatus.CONFIRMED)).willReturn(List.of());
+        given(applicationRepository.findApplications(null, ApplicationStatus.CONFIRMED)).willReturn(List.of());
 
         // WHEN
         List<AdminApplicationResponse> result = adminApplicationService.getAllApplications(null, ApplicationStatus.CONFIRMED);
@@ -205,20 +205,19 @@ class AdminApplicationServiceTest {
         assertThat(response.getMileageRewarded()).isNull();
     }
 
-    @Test
-    @DisplayName("CANCELLED로 상태 변경 성공")
-    void changeStatus_toCancelled_success() {
-        // GIVEN
-        given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.of(application));
-        AdminApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.CANCELLED);
+@Test
+@DisplayName("CANCELLED로 상태 변경 시도 시 예외 발생")
+void changeStatus_toCancelled_throwsException() {
+    // GIVEN
+    given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.of(application));
+    AdminApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.CANCELLED);
 
-        // WHEN
-        AdminApplicationStatusResponse response = adminApplicationService.changeStatus(applicationId, request);
+    // WHEN & THEN
+    assertThatThrownBy(() -> adminApplicationService.changeStatus(applicationId, request))
+            .isInstanceOf(CustomException.class)
+            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_STATUS_TRANSITION);
+}
 
-        // THEN
-        assertThat(response.getStatus()).isEqualTo(ApplicationStatus.CANCELLED);
-        assertThat(application.getDeletedAt()).isNotNull();
-    }
 
     @Test
     @DisplayName("ATTENDED로 상태 변경 성공 - 게스트 신청이면 마일리지 미지급")
@@ -295,7 +294,7 @@ class AdminApplicationServiceTest {
         // WHEN & THEN
         assertThatThrownBy(() -> adminApplicationService.changeStatus(applicationId, request))
                 .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CANNOT_CANCEL);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_STATUS_TRANSITION);
     }
 
     @Test

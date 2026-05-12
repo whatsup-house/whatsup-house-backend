@@ -6,14 +6,18 @@ import com.whatsuphouse.backend.global.common.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "관리자 - 회원", description = "회원 관리 API")
+@Validated
 @RestController
 @RequestMapping("/api/admin/users")
 @RequiredArgsConstructor
@@ -28,10 +32,10 @@ public class AdminUserController {
             @RequestParam(required = false) String search,
 
             @Parameter(description = "페이지 번호 (0부터 시작)", example = "0")
-            @RequestParam(defaultValue = "0") int page,
+            @Min(0) @RequestParam(defaultValue = "0") int page,
 
             @Parameter(description = "페이지 크기 (기본값 20, 최대 100)", example = "20")
-            @RequestParam(defaultValue = "20") int size
+            @Min(1) @Max(100) @RequestParam(defaultValue = "20") int size
     ) {
         return ResponseEntity.ok(ApiResult.success(adminUserService.listUsers(search, page, size)));
     }

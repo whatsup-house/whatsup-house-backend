@@ -28,19 +28,7 @@ public class AdminApplicationService {
     private final MileageService mileageService;
 
     public List<AdminApplicationResponse> getAllApplications(UUID gatheringId, ApplicationStatus status) {
-        if (gatheringId != null) {
-            return applicationRepository.findByGatheringIdAndDeletedAtIsNull(gatheringId)
-                    .stream()
-                    .map(AdminApplicationResponse::from)
-                    .toList();
-        }
-        if (status != null) {
-            return applicationRepository.findByStatusAndDeletedAtIsNull(status)
-                    .stream()
-                    .map(AdminApplicationResponse::from)
-                    .toList();
-        }
-        return applicationRepository.findByDeletedAtIsNull()
+        return applicationRepository.findApplications(gatheringId, status)
                 .stream()
                 .map(AdminApplicationResponse::from)
                 .toList();
@@ -75,18 +63,18 @@ public class AdminApplicationService {
                 .orElseThrow(() -> new CustomException(ErrorCode.APPLICATION_NOT_FOUND));
 
         ApplicationStatus newStatus = request.getStatus();
-        switch (newStatus) {
-            case CONFIRMED -> application.confirm();
-            case CANCELLED -> application.cancel();
-            case ATTENDED -> {
-                if (application.getStatus() == ApplicationStatus.ATTENDED) {
-                    throw new CustomException(ErrorCode.ALREADY_ATTENDED);
-                }
-                application.attend();
-                return rewardAttendanceMileage(application);
-            }
-            default -> throw new CustomException(ErrorCode.CANNOT_CANCEL);
+       switch (newStatus) {
+    case CONFIRMED -> application.confirm();
+    case ATTENDED -> {
+        if (application.getStatus() == ApplicationStatus.ATTENDED) {
+            throw new CustomException(ErrorCode.ALREADY_ATTENDED);
         }
+        application.attend();
+        return rewardAttendanceMileage(application);
+    }
+    default -> throw new CustomException(ErrorCode.INVALID_STATUS_TRANSITION);
+}
+
 
         return AdminApplicationStatusResponse.of(application.getId(), application.getStatus(), null, null);
     }

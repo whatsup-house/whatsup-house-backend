@@ -1,0 +1,136 @@
+package com.whatsuphouse.backend.domain.carousel.admin.service;
+
+import com.whatsuphouse.backend.domain.carousel.admin.dto.request.CarouselSlideActiveRequest;
+import com.whatsuphouse.backend.domain.carousel.admin.dto.request.CarouselSlideCreateRequest;
+import com.whatsuphouse.backend.domain.carousel.admin.dto.request.CarouselSlideOrderRequest;
+import com.whatsuphouse.backend.domain.carousel.admin.dto.request.CarouselSlideUpdateRequest;
+import com.whatsuphouse.backend.domain.carousel.admin.dto.response.AdminCarouselSlideResponse;
+import com.whatsuphouse.backend.domain.carousel.entity.CarouselSlide;
+import com.whatsuphouse.backend.domain.carousel.enums.SlideType;
+import com.whatsuphouse.backend.domain.carousel.repository.CarouselSlideRepository;
+import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
+import com.whatsuphouse.backend.domain.gathering.repository.GatheringRepository;
+import com.whatsuphouse.backend.global.exception.CustomException;
+import com.whatsuphouse.backend.global.exception.ErrorCode;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Service
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
+public class AdminCarouselService {
+
+    private final CarouselSlideRepository carouselSlideRepository;
+    private final GatheringRepository gatheringRepository;
+
+    public List<AdminCarouselSlideResponse> listSlides() {
+        return carouselSlideRepository.findByDeletedAtIsNullOrderBySortOrderAscCreatedAtAsc()
+                .stream()
+                .map(AdminCarouselSlideResponse::from)
+                .toList();
+    }
+
+    @Transactional
+    public AdminCarouselSlideResponse createSlide(CarouselSlideCreateRequest request) {
+        validateTypeConstraints(request.getType(), request.getGatheringId(), request.getContent());
+
+        Gathering gathering = null;
+        if (request.getType() == SlideType.GATHERING) {
+            gathering = gatheringRepository.findByIdAndDeletedAtIsNull(request.getGatheringId())
+                    .orElseThrow(() -> new CustomException(ErrorCode.GATHERING_NOT_FOUND));
+        }
+
+        int sortOrder = request.getSortOrder() != null
+                ? request.getSortOrder()
+                : carouselSlideRepository.findMaxSortOrder().orElse(-1) + 1;
+
+        String content = request.getType() == SlideType.GATHERING ? null : request.getContent();
+        Gathering finalGathering = request.getType() != SlideType.GATHERING ? null : gathering;
+
+        CarouselSlide slide = CarouselSlide.builder()
+                .type(request.getType())
+                .title(request.getTitle())
+                .content(content)
+                .imageUrl(request.getImageUrl())
+                .gathering(finalGathering)
+                .sortOrder(sortOrder)
+                .isActive(false)
+                .build();
+
+        return AdminCarouselSlideResponse.from(carouselSlideRepository.save(slide));
+    }
+
+    @Transactional
+    public AdminCarouselSlideResponse updateSlide(UUID slideId, CarouselSlideUpdateRequest request) {
+        CarouselSlide slide = carouselSlideRepository.findByIdAndDeletedAtIsNull(slideId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SLIDE_NOT_FOUND));
+
+        validateTypeConstraints(request.getType(), request.getGatheringId(), request.getContent());
+
+        Gathering gathering = null;
+        if (request.getType() == SlideType.GATHERING) {
+            gathering = gatheringRepository.findByIdAndDeletedAtIsNull(request.getGatheringId())
+                    .orElseThrow(() -> new CustomException(ErrorCode.GATHERING_NOT_FOUND));
+        }
+
+        String content = request.getType() == SlideType.GATHERING ? null : request.getContent();
+        Gathering finalGathering = request.getType() != SlideType.GATHERING ? null : gathering;
+
+        int sortOrder = request.getSortOrder() != null
+                ? request.getSortOrder()
+                : slide.getSortOrder();
+
+        slide.update(request.getType(), request.getTitle(), content, request.getImageUrl(), finalGathering, sortOrder);
+
+        return AdminCarouselSlideResponse.from(slide);
+    }
+
+    @Transactional
+    public void deleteSlide(UUID slideId) {
+        CarouselSlide slide = carouselSlideRepository.findByIdAndDeletedAtIsNull(slideId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SLIDE_NOT_FOUND));
+        slide.delete();
+    }
+
+    @Transactional
+    public void toggleActive(UUID slideId, CarouselSlideActiveRequest request) {
+        CarouselSlide slide = carouselSlideRepository.findByIdAndDeletedAtIsNull(slideId)
+                .orElseThrow(() -> new CustomException(ErrorCode.SLIDE_NOT_FOUND));
+
+        if (request.getIsActive()) {
+            slide.activate();
+        } else {
+            slide.deactivate();
+        }
+    }
+
+    @Transactional
+    public void reorderSlides(CarouselSlideOrderRequest request) {
+        List<UUID> slideIds = request.getSlideIds();
+        Map<UUID, CarouselSlide> slideMap = carouselSlideRepository.findAllByIdInAndDeletedAtIsNull(slideIds)
+                .stream()
+                .collect(Collectors.toMap(CarouselSlide::getId, s -> s));
+
+        for (int i = 0; i < slideIds.size(); i++) {
+            CarouselSlide slide = Optional.ofNullable(slideMap.get(slideIds.get(i)))
+                    .orElseThrow(() -> new CustomException(ErrorCode.SLIDE_NOT_FOUND));
+            slide.update(slide.getType(), slide.getTitle(), slide.getContent(), slide.getImageUrl(), slide.getGathering(), i);
+        }
+    }
+
+    private void validateTypeConstraints(SlideType type, UUID gatheringId, String content) {
+        if (type == SlideType.GATHERING && gatheringId == null) {
+            throw new CustomException(ErrorCode.GATHERING_ID_REQUIRED);
+        }
+        if (type == SlideType.STORY && (content == null || content.isBlank())) {
+            throw new CustomException(ErrorCode.SLIDE_CONTENT_REQUIRED);
+        }
+    }
+}

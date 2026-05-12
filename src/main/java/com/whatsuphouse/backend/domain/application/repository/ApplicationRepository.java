@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface ApplicationRepository extends JpaRepository<Application, UUID> {
+public interface ApplicationRepository extends JpaRepository<Application, UUID>, ApplicationRepositoryCustom {
 
     interface ApplicationCountProjection {
         UUID getGatheringId();
@@ -38,11 +38,4 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID> 
 
     List<Application> findByUserIdAndDeletedAtIsNull(UUID userId);
 
-    List<Application> findByDeletedAtIsNull();
-
-    List<Application> findByGatheringIdAndDeletedAtIsNull(UUID gatheringId);
-
-    List<Application> findByGatheringIdAndStatusAndDeletedAtIsNull(UUID gatheringId, ApplicationStatus status);
-
-    List<Application> findByStatusAndDeletedAtIsNull(ApplicationStatus status);
 }

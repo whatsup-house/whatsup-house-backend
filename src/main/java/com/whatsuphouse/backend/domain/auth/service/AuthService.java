@@ -5,6 +5,7 @@ import com.whatsuphouse.backend.domain.auth.dto.request.RegisterRequest;
 import com.whatsuphouse.backend.domain.auth.dto.response.LoginResponse;
 import com.whatsuphouse.backend.domain.auth.dto.response.RegisterResponse;
 import com.whatsuphouse.backend.domain.auth.dto.response.TokenRefreshResponse;
+import com.whatsuphouse.backend.domain.mileage.service.MileageService;
 import com.whatsuphouse.backend.domain.user.entity.User;
 import com.whatsuphouse.backend.domain.user.repository.UserRepository;
 import com.whatsuphouse.backend.global.auth.JwtTokenProvider;
@@ -31,6 +32,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final StringRedisTemplate redisTemplate;
+    private final MileageService mileageService;
 
     public RegisterResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -51,6 +53,7 @@ public class AuthService {
                 .build();
 
         userRepository.save(user);
+        mileageService.rewardSignup(user);
         return RegisterResponse.from(user);
     }
 
@@ -77,6 +80,7 @@ public class AuthService {
                         .email(user.getEmail())
                         .nickname(user.getNickname())
                         .isAdmin(user.isAdmin())
+                        .mileage(user.getMileageBalance())
                         .build())
                 .build();
     }

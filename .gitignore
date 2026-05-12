@@ -44,6 +44,9 @@ out/
 # 로그 파일
 logs
 
+# macOS
+.DS_Store
+
 # Claude Code 로컬 설정
 .claude/settings.local.json
 

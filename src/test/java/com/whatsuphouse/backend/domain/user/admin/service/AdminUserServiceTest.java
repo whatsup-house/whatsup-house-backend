@@ -61,6 +61,7 @@ class AdminUserServiceTest {
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent().get(0).getTotalApplications()).isEqualTo(3L);
         assertThat(result.getContent().get(0).getAttendedCount()).isEqualTo(2L);
+        assertThat(result.getContent().get(0).getMileage()).isEqualTo(0);
     }
 
     @Test
@@ -79,5 +80,6 @@ class AdminUserServiceTest {
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getNickname()).isEqualTo("gildong");
+        assertThat(result.getContent().get(0).getMileage()).isEqualTo(0);
     }
 }

@@ -16,11 +16,16 @@ import java.util.UUID;
 public class MileageService {
 
     public static final int SIGNUP_REWARD_AMOUNT = 1000;
+    public static final int ATTENDANCE_REWARD_AMOUNT = 1000;
 
     private final MileageHistoryRepository mileageHistoryRepository;
 
     public MileageHistory rewardSignup(User user) {
         return earn(user, MileageType.SIGNUP, SIGNUP_REWARD_AMOUNT, user.getId());
+    }
+
+    public MileageHistory rewardAttendance(User user, UUID applicationId) {
+        return earn(user, MileageType.ATTENDANCE, ATTENDANCE_REWARD_AMOUNT, applicationId);
     }
 
     public MileageHistory earn(User user, MileageType type, int amount, UUID relatedId) {

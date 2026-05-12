@@ -1,7 +1,6 @@
 package com.whatsuphouse.backend.domain.user.repository;
 
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.whatsuphouse.backend.domain.application.entity.QApplication;
@@ -22,7 +21,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<Object[]> findUsersWithApplicationStats(String search, Pageable pageable) {
+    public Page<UserApplicationStatsRow> findUsersWithApplicationStats(String search, Pageable pageable) {
         QUser user = QUser.user;
         QApplication application = QApplication.application;
 
@@ -41,7 +40,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
                 .then(1L)
                 .otherwise(0L).sum();
 
-        List<Tuple> tuples = queryFactory
+        List<UserApplicationStatsRow> results = queryFactory
                 .select(user, application.id.count(), attendedCount)
                 .from(user)
                 .leftJoin(application).on(
@@ -53,21 +52,20 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
                 .orderBy(user.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .fetch();
+                .fetch()
+                .stream()
+                .map(t -> new UserApplicationStatsRow(
+                        t.get(user),
+                        t.get(application.id.count()) != null ? t.get(application.id.count()) : 0L,
+                        t.get(attendedCount) != null ? t.get(attendedCount) : 0L
+                ))
+                .toList();
 
         long total = queryFactory
                 .select(user.count())
                 .from(user)
                 .where(builder)
                 .fetchOne();
-
-        List<Object[]> results = tuples.stream()
-                .map(t -> new Object[]{
-                        t.get(user),
-                        t.get(application.id.count()),
-                        t.get(attendedCount)
-                })
-                .toList();
 
         return new PageImpl<>(results, pageable, total);
     }

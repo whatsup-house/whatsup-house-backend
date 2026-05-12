@@ -38,7 +38,8 @@ public class SecurityConfig {
         "/api/gatherings/**",
         "/api/locations/**",
         "/api/users/check-nickname",
-        "/api/users/check-email"
+        "/api/users/check-email",
+        "/api/home/carousel"
     };
 
     @Bean

@@ -1,9 +1,9 @@
 package com.whatsuphouse.backend.domain.application.admin.controller;
 
-import com.whatsuphouse.backend.domain.application.admin.dto.request.AdminApplicationStatusRequest;
-import com.whatsuphouse.backend.domain.application.admin.dto.response.AdminApplicationDeleteResponse;
+import com.whatsuphouse.backend.domain.application.admin.dto.request.ApplicationStatusRequest;
+import com.whatsuphouse.backend.domain.application.admin.dto.response.ApplicationDeleteResponse;
 import com.whatsuphouse.backend.domain.application.admin.dto.response.AdminApplicationResponse;
-import com.whatsuphouse.backend.domain.application.admin.dto.response.AdminApplicationStatusResponse;
+import com.whatsuphouse.backend.domain.application.admin.dto.response.ApplicationStatusResponse;
 import com.whatsuphouse.backend.domain.application.admin.service.AdminApplicationService;
 import com.whatsuphouse.backend.domain.application.enums.ApplicationStatus;
 import com.whatsuphouse.backend.global.common.ApiResult;
@@ -45,7 +45,7 @@ public class AdminApplicationController {
 
     @Operation(summary = "신청 삭제 (소프트 삭제)", description = "이미 CANCELLED인 경우 멱등 처리(200 OK). ATTENDED 상태는 삭제 불가.")
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResult<AdminApplicationDeleteResponse>> deleteApplication(
+    public ResponseEntity<ApiResult<ApplicationDeleteResponse>> deleteApplication(
             @Parameter(description = "신청 ID") @PathVariable UUID id
     ) {
         return ResponseEntity.ok(ApiResult.success(adminApplicationService.deleteApplication(id)));
@@ -53,9 +53,9 @@ public class AdminApplicationController {
 
     @Operation(summary = "신청 상태 변경")
     @PatchMapping("/{id}/status")
-    public ResponseEntity<ApiResult<AdminApplicationStatusResponse>> changeStatus(
+    public ResponseEntity<ApiResult<ApplicationStatusResponse>> changeStatus(
             @PathVariable UUID id,
-            @Valid @RequestBody AdminApplicationStatusRequest request
+            @Valid @RequestBody ApplicationStatusRequest request
     ) {
         return ResponseEntity.ok(ApiResult.success(adminApplicationService.changeStatus(id, request)));
     }

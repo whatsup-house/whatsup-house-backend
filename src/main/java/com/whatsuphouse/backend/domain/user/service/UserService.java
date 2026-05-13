@@ -49,7 +49,7 @@ public class UserService {
         return !userRepository.existsByNickname(nickname);
     }
 
-    public User findActiveUser(UUID userId) {
+    private User findActiveUser(UUID userId) {
         return userRepository.findByIdAndDeletedAtIsNull(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }

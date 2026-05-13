@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Getter
 @Builder
-public class AdminApplicationDeleteResponse {
+public class ApplicationDeleteResponse {
 
     @Schema(description = "신청 ID", example = "550e8400-e29b-41d4-a716-446655440000")
     private UUID id;
@@ -22,8 +22,8 @@ public class AdminApplicationDeleteResponse {
     @Schema(description = "삭제 처리 시각", example = "2026-05-05T12:00:00")
     private LocalDateTime deletedAt;
 
-    public static AdminApplicationDeleteResponse from(Application application) {
-        return AdminApplicationDeleteResponse.builder()
+    public static ApplicationDeleteResponse from(Application application) {
+        return ApplicationDeleteResponse.builder()
                 .id(application.getId())
                 .status(application.getStatus())
                 .deletedAt(application.getDeletedAt())

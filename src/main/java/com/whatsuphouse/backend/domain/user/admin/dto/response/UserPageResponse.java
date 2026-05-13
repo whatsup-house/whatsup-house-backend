@@ -9,10 +9,10 @@ import java.util.List;
 
 @Getter
 @Builder
-public class UserAdminPageResponse {
+public class UserPageResponse {
 
     @Schema(description = "회원 목록")
-    private List<UserAdminListResponse> content;
+    private List<UserListResponse> content;
 
     @Schema(description = "현재 페이지 번호 (0부터 시작)", example = "0")
     private int page;
@@ -26,8 +26,8 @@ public class UserAdminPageResponse {
     @Schema(description = "전체 페이지 수", example = "5")
     private int totalPages;
 
-    public static UserAdminPageResponse from(Page<UserAdminListResponse> pageResult) {
-        return UserAdminPageResponse.builder()
+    public static UserPageResponse from(Page<UserListResponse> pageResult) {
+        return UserPageResponse.builder()
                 .content(pageResult.getContent())
                 .page(pageResult.getNumber())
                 .size(pageResult.getSize())

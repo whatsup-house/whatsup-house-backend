@@ -129,19 +129,12 @@ class AdminLocationServiceTest {
     // ── helpers ──────────────────────────────────────────────────────────────
 
     private LocationCreateRequest buildCreateRequest(String name, String address) {
-        LocationCreateRequest request = new LocationCreateRequest();
-        ReflectionTestUtils.setField(request, "name", name);
-        ReflectionTestUtils.setField(request, "address", address);
-        ReflectionTestUtils.setField(request, "maxCapacity", 20);
-        return request;
+        return LocationCreateRequest.builder()
+                .name(name).address(address).maxCapacity(20).build();
     }
 
     private LocationUpdateRequest buildUpdateRequest(String name, String address) {
-        LocationUpdateRequest request = new LocationUpdateRequest();
-        ReflectionTestUtils.setField(request, "name", name);
-        ReflectionTestUtils.setField(request, "address", address);
-        ReflectionTestUtils.setField(request, "maxCapacity", 20);
-        ReflectionTestUtils.setField(request, "status", LocationStatus.ACTIVE);
-        return request;
+        return LocationUpdateRequest.builder()
+                .name(name).address(address).maxCapacity(20).status(LocationStatus.ACTIVE).build();
     }
 }

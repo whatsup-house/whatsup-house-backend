@@ -23,7 +23,7 @@ public class GatheringService {
 
     private final GatheringRepository gatheringRepository;
 
-    public List<GatheringResponse> getGatherings(LocalDate date, GatheringStatus status) {
+    public List<GatheringResponse> listGatherings(LocalDate date, GatheringStatus status) {
         if (date != null && status != null) {
             return gatheringRepository.findByEventDateAndStatusAndDeletedAtIsNull(date, status)
                     .stream().map(GatheringResponse::from).toList();

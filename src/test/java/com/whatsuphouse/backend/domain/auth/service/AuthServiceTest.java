@@ -256,21 +256,14 @@ class AuthServiceTest {
     // ── helpers ───────────────────────────────────────────────────────────────
 
     private RegisterRequest buildRegisterRequest(String email, String nickname) {
-        RegisterRequest request = new RegisterRequest();
-        ReflectionTestUtils.setField(request, "email", email);
-        ReflectionTestUtils.setField(request, "password", "password123!");
-        ReflectionTestUtils.setField(request, "name", "홍길동");
-        ReflectionTestUtils.setField(request, "gender", Gender.MALE);
-        ReflectionTestUtils.setField(request, "age", 25);
-        ReflectionTestUtils.setField(request, "nickname", nickname);
-        return request;
+        return RegisterRequest.builder()
+                .email(email).password("password123!").name("홍길동")
+                .gender(Gender.MALE).age(25).nickname(nickname).build();
     }
 
     private LoginRequest buildLoginRequest(String email, String password) {
-        LoginRequest request = new LoginRequest();
-        ReflectionTestUtils.setField(request, "email", email);
-        ReflectionTestUtils.setField(request, "password", password);
-        return request;
+        return LoginRequest.builder()
+                .email(email).password(password).build();
     }
 
 }

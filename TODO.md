@@ -1,35 +1,80 @@
-## KAN-69: 홈 Curated Section 게더링 랭킹 API (FR-HOME-15)
-
-### 개요
-- `GET /api/home/curated` — 큐레이션 게더링 목록 조회 (비인증)
-- 관리자 수동 지정, 수동 순서 변경
-- `gatherings` 테이블에 `is_curated`, `curated_rank` 컬럼 직접 추가
-- 관리자 UX: 활성화 토글 + 순서 일괄 변경 (carousel과 동일 패턴)
-
-### 작업 목록
-
-#### DB 마이그레이션
-- [ ] `V4__add_curation_fields_to_gatherings.sql` — `is_curated`, `curated_rank` 컬럼 추가
-
-#### Entity / Repository
-- [ ] `Gathering.java` — `isCurated`, `curatedRank` 필드 추가 + `updateCuration()`, `updateCuratedRank()` 메서드
-- [ ] `GatheringRepository.java` — `findByIsCuratedTrueAndDeletedAtIsNullOrderByCuratedRankAsc()` 추가
-
-#### 클라이언트 API
-- [ ] `CuratedGatheringResponse.java` 신규 — `id, title, thumbnailUrl, eventDate, locationName, price, status, curatedRank`
-- [ ] `GatheringService.java` — `listCuratedGatherings()` 추가
-- [ ] `GatheringController.java` — `GET /api/home/curated` 추가
-- [ ] `SecurityConfig.java` — `PERMIT_GET`에 `/api/home/curated` 추가
-
-#### 관리자 API
-- [ ] `GatheringCurationRequest.java` 신규 — `isCurated (boolean)`
-- [ ] `GatheringCurationOrderRequest.java` 신규 — `gatheringIds (List<UUID>)`
-- [ ] `AdminGatheringService.java` — `toggleCuration()`, `reorderCurated()` 추가
-- [ ] `AdminGatheringController.java` — `PATCH /{id}/curation`, `PUT /curated/order` 추가
-
-### 검증
-- `GET /api/home/curated` 비인증 호출 → 빈 배열 200
-- 관리자 큐레이션 지정 후 재조회 → curatedRank 순 정렬 확인
-- `./gradlew test` 전체 통과
+# 배포 전 리팩토링 TODO
 
 ---
+
+## 1. 디렉토리 구조 정리
+
+### 1-1. `image` 도메인 위치 불일치
+- `domain/image/controller/ImageController.java` 는 실제로 도메인 로직이 없고 `global/storage`의 `StorageService`를 그대로 위임만 함
+- `ImageController`를 `global/storage/controller/` 또는 `global/image/controller/`로 이동하거나, `domain/image`를 `global`로 흡수하는 방향 결정 필요
+
+### 1-2. `carousel` 홈 API 컨트롤러 위치 불일치
+- `CarouselController`의 매핑 경로는 `/api/home/carousel`이지만 패키지는 `domain/carousel/client/controller/`에 위치
+- `HomeGatheringController`는 같은 `/api/home/**` 경로임에도 `domain/gathering/client/controller/`에 위치
+- 홈 화면 API를 담당하는 컨트롤러를 한 곳(`domain/home/` 또는 `global/home/`)으로 모으거나, 경로와 패키지를 일치시키는 방향 결정 필요
+
+### 1-3. `MileageHistory` — `BaseEntity` 미상속
+- 다른 모든 Entity는 `BaseEntity`를 상속하지만 `MileageHistory`만 독자적으로 `@PrePersist`로 `earnedDate`를 관리
+- `createdAt`, `updatedAt` 오디팅 필드가 없어 일관성 깨짐
+- `BaseEntity` 상속으로 통일하고 `earnedDate` 필드는 제거 또는 `createdAt`으로 대체 검토
+
+### 1-4. `global/storage` DTO 위치
+- `global/storage/dto/ImageUploadResponse.java`가 storage 패키지 내에 존재
+- `ImageController`가 `domain/image`에 있다면 DTO도 같은 도메인 패키지로 이동하거나, 컨트롤러를 global로 이동 후 함께 관리
+
+---
+
+## 2. 네이밍 컨벤션 정리
+
+### 2-1. boolean 필드 JPA 컬럼 네이밍 혼용
+- `CarouselSlide.isActive`, `Gathering.isCurated` → DB 컬럼명이 각각 `is_active`, `is_curated`로 선언
+- `User.isAdmin` → 컬럼명 `is_admin`
+- JPA에서 `boolean` 필드에 `is` 접두어를 붙이면 getter가 `isActive()`가 아닌 `getIsActive()` 또는 `active()`로 생성될 수 있어 Lombok과 혼용 시 예측이 어려움
+- 프로젝트 내 boolean 필드 접두어 규칙 통일 (`active`, `curated`, `admin`으로 통일하거나 현재 방식 고수 중 결정)
+
+### 2-2. 메서드 네이밍 — Admin/Client 서비스 간 동사 혼용 ✅
+- `GatheringService.getGatherings()` → `listGatherings()`
+- `GatheringController.getGatherings()` → `listGatherings()`
+
+### 2-3. Request/Response DTO 네이밍 — Admin prefix 불일치 ✅
+- `AdminApplicationStatusRequest` → `ApplicationStatusRequest`
+- `AdminApplicationDeleteResponse` → `ApplicationDeleteResponse`
+- `AdminApplicationStatusResponse` → `ApplicationStatusResponse`
+- `UserAdminListResponse` → `UserListResponse`
+- `UserAdminPageResponse` → `UserPageResponse`
+- (충돌로 유지) `AdminApplicationResponse`, `AdminCarouselSlideResponse`, `AdminGatheringResponse`
+
+### 2-4. Repository 조회 결과 타입 — `*Row` suffix ✅
+- `UserApplicationStatsRow` → `UserApplicationStatsProjection`
+
+---
+
+## 3. 역할 분리 (레이어 경계)
+
+### 3-1. `UserService.findActiveUser()` — public 노출 범위 ✅
+- `UserService.findActiveUser()` → `private`으로 변경
+
+### 3-2. `AdminCarouselService.reorderSlides()` — 엔티티 update 메서드 오용 ✅
+- `CarouselSlide.updateSortOrder(int sortOrder)` 메서드 추가
+- `reorderSlides()` 내 `slide.update(...)` → `slide.updateSortOrder(i)` 로 교체
+
+### 3-3. `GatheringService` — 필터 조건 분기 중복
+- `GatheringService.getGatherings()`와 `AdminGatheringService.resolveGatherings()`가 동일한 날짜/상태 필터 조합 분기를 각각 구현
+- 클라이언트용은 날짜 단일 필터, 어드민용은 날짜 범위 필터까지 포함하는 차이가 있으므로 현재 분리 유지가 맞지만, `GatheringRepository`에 Querydsl Custom 쿼리로 단일화하는 방향도 검토 가능
+
+### 3-4. 테스트 DTO 생성 방식 — `ReflectionTestUtils.setField` 사각지대 ✅
+- Request DTO 13개에 `@Builder @NoArgsConstructor @AllArgsConstructor` 추가
+- 테스트 6개 파일에서 DTO 대상 `ReflectionTestUtils.setField` → Builder 패턴으로 전환
+- Entity id 주입(`setField(entity, "id", ...)`)은 대상 아님 (JPA 관리 필드)
+
+---
+
+## 4. SonarQube 정적 분석 (이후 단계)
+
+- [x] SonarQube 연동 설정 (`build.gradle` 플러그인 — sonarqube 6.0.1.5171, jacoco)
+- [x] `docker-compose.yml`에 SonarQube + 전용 PostgreSQL 서비스 추가
+- [ ] SonarQube 서버 최초 실행 및 토큰 발급
+  - `docker compose up -d sonar-db sonarqube`
+  - `http://localhost:9000` → admin/admin 로그인 → 비밀번호 변경 → My Account → Security → Generate Token
+- [ ] 분석 실행: `./gradlew test sonar -Dsonar.token=<발급토큰>`
+- [ ] 분석 결과 Critical/Major 이슈 목록 이 문서에 추가 및 수정

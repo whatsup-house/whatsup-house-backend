@@ -1,9 +1,9 @@
 package com.whatsuphouse.backend.domain.application.admin.service;
 
-import com.whatsuphouse.backend.domain.application.admin.dto.request.AdminApplicationStatusRequest;
-import com.whatsuphouse.backend.domain.application.admin.dto.response.AdminApplicationDeleteResponse;
+import com.whatsuphouse.backend.domain.application.admin.dto.request.ApplicationStatusRequest;
+import com.whatsuphouse.backend.domain.application.admin.dto.response.ApplicationDeleteResponse;
 import com.whatsuphouse.backend.domain.application.admin.dto.response.AdminApplicationResponse;
-import com.whatsuphouse.backend.domain.application.admin.dto.response.AdminApplicationStatusResponse;
+import com.whatsuphouse.backend.domain.application.admin.dto.response.ApplicationStatusResponse;
 import com.whatsuphouse.backend.domain.application.entity.Application;
 import com.whatsuphouse.backend.domain.application.enums.ApplicationStatus;
 import com.whatsuphouse.backend.domain.application.repository.ApplicationRepository;
@@ -41,12 +41,12 @@ public class AdminApplicationService {
     }
 
     @Transactional
-    public AdminApplicationDeleteResponse deleteApplication(UUID id) {
+    public ApplicationDeleteResponse deleteApplication(UUID id) {
         Application application = applicationRepository.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.APPLICATION_NOT_FOUND));
 
         if (application.getStatus() == ApplicationStatus.CANCELLED && application.getDeletedAt() != null) {
-            return AdminApplicationDeleteResponse.from(application);
+            return ApplicationDeleteResponse.from(application);
         }
 
         if (application.getStatus() == ApplicationStatus.ATTENDED) {
@@ -54,11 +54,11 @@ public class AdminApplicationService {
         }
 
         application.cancel();
-        return AdminApplicationDeleteResponse.from(application);
+        return ApplicationDeleteResponse.from(application);
     }
 
     @Transactional
-    public AdminApplicationStatusResponse changeStatus(UUID id, AdminApplicationStatusRequest request) {
+    public ApplicationStatusResponse changeStatus(UUID id, ApplicationStatusRequest request) {
         Application application = applicationRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.APPLICATION_NOT_FOUND));
 
@@ -76,17 +76,17 @@ public class AdminApplicationService {
 }
 
 
-        return AdminApplicationStatusResponse.of(application.getId(), application.getStatus(), null, null);
+        return ApplicationStatusResponse.of(application.getId(), application.getStatus(), null, null);
     }
 
-    private AdminApplicationStatusResponse rewardAttendanceMileage(Application application) {
+    private ApplicationStatusResponse rewardAttendanceMileage(Application application) {
         User user = application.getUser();
         if (user == null) {
-            return AdminApplicationStatusResponse.of(application.getId(), application.getStatus(), null, null);
+            return ApplicationStatusResponse.of(application.getId(), application.getStatus(), null, null);
         }
 
         MileageHistory history = mileageService.rewardAttendance(user, application.getId());
-        return AdminApplicationStatusResponse.of(
+        return ApplicationStatusResponse.of(
                 application.getId(),
                 application.getStatus(),
                 history.getAmount(),

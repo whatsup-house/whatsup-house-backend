@@ -5,7 +5,7 @@ import com.whatsuphouse.backend.domain.application.repository.ApplicationReposit
 import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
 import com.whatsuphouse.backend.domain.gathering.repository.GatheringRepository;
 import com.whatsuphouse.backend.domain.user.entity.User;
-import com.whatsuphouse.backend.domain.user.repository.UserApplicationStatsRow;
+import com.whatsuphouse.backend.domain.user.repository.UserApplicationStatsProjection;
 import com.whatsuphouse.backend.global.common.enums.Gender;
 import com.whatsuphouse.backend.global.config.TestJpaConfig;
 import org.junit.jupiter.api.BeforeEach;
@@ -99,7 +99,7 @@ class AdminUserRepositoryTest {
     @Test
     @DisplayName("search=null이면 삭제되지 않은 전체 회원 반환")
     void findUsersWithStats_nullSearch_returnsAllActiveUsers() {
-        Page<UserApplicationStatsRow> result = userRepository.findUsersWithApplicationStats(null, PageRequest.of(0, 20));
+        Page<UserApplicationStatsProjection> result = userRepository.findUsersWithApplicationStats(null, PageRequest.of(0, 20));
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent().get(0).user().getEmail()).isEqualTo(user.getEmail());
     }
@@ -107,19 +107,19 @@ class AdminUserRepositoryTest {
     @Test
     @DisplayName("닉네임 부분 일치 검색")
     void findUsersWithStats_searchByNickname() {
-        Page<UserApplicationStatsRow> hit = userRepository.findUsersWithApplicationStats("gild", PageRequest.of(0, 20));
+        Page<UserApplicationStatsProjection> hit = userRepository.findUsersWithApplicationStats("gild", PageRequest.of(0, 20));
         assertThat(hit.getTotalElements()).isEqualTo(1);
         assertThat(hit.getContent().get(0).user().getEmail()).isEqualTo("test@example.com");
 
-        Page<UserApplicationStatsRow> miss = userRepository.findUsersWithApplicationStats("xyz", PageRequest.of(0, 20));
+        Page<UserApplicationStatsProjection> miss = userRepository.findUsersWithApplicationStats("xyz", PageRequest.of(0, 20));
         assertThat(miss.getTotalElements()).isEqualTo(0);
     }
 
     @Test
     @DisplayName("totalApplications는 CANCELLED(soft-deleted) 제외, attendedCount는 ATTENDED만 집계")
     void findUsersWithStats_aggregatesCorrectly() {
-        Page<UserApplicationStatsRow> result = userRepository.findUsersWithApplicationStats(null, PageRequest.of(0, 20));
-        UserApplicationStatsRow row = result.getContent().get(0);
+        Page<UserApplicationStatsProjection> result = userRepository.findUsersWithApplicationStats(null, PageRequest.of(0, 20));
+        UserApplicationStatsProjection row = result.getContent().get(0);
         assertThat(row.totalApplications()).isEqualTo(2L);
         assertThat(row.attendedCount()).isEqualTo(1L);
     }
@@ -140,7 +140,7 @@ class AdminUserRepositoryTest {
         em.flush();
         em.clear();
 
-        Page<UserApplicationStatsRow> result = userRepository.findUsersWithApplicationStats(null, PageRequest.of(0, 20));
+        Page<UserApplicationStatsProjection> result = userRepository.findUsersWithApplicationStats(null, PageRequest.of(0, 20));
 
         assertThat(result.getContent())
                 .extracting(row -> row.user().getEmail())

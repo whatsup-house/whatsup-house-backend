@@ -98,11 +98,10 @@ class AdminCarouselServiceTest {
     @DisplayName("GATHERING 타입 슬라이드 생성 성공")
     void createSlide_gatheringType_success() {
         // given
-        CarouselSlideCreateRequest request = new CarouselSlideCreateRequest();
-        ReflectionTestUtils.setField(request, "type", SlideType.GATHERING);
-        ReflectionTestUtils.setField(request, "title", "5월 소풍 모임");
-        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg");
-        ReflectionTestUtils.setField(request, "gatheringId", gatheringId);
+        CarouselSlideCreateRequest request = CarouselSlideCreateRequest.builder()
+                .type(SlideType.GATHERING).title("5월 소풍 모임")
+                .tempPath("temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg")
+                .gatheringId(gatheringId).build();
 
         given(gatheringRepository.findByIdAndDeletedAtIsNull(gatheringId)).willReturn(Optional.of(gathering));
         given(carouselSlideRepository.findMaxSortOrder()).willReturn(Optional.of(2));
@@ -122,11 +121,9 @@ class AdminCarouselServiceTest {
     @DisplayName("STORY 타입 슬라이드 생성 성공")
     void createSlide_storyType_success() {
         // given
-        CarouselSlideCreateRequest request = new CarouselSlideCreateRequest();
-        ReflectionTestUtils.setField(request, "type", SlideType.STORY);
-        ReflectionTestUtils.setField(request, "title", "봄 나들이 모임");
-        ReflectionTestUtils.setField(request, "content", "함께 봄꽃 구경 가요!");
-        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg");
+        CarouselSlideCreateRequest request = CarouselSlideCreateRequest.builder()
+                .type(SlideType.STORY).title("봄 나들이 모임").content("함께 봄꽃 구경 가요!")
+                .tempPath("temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg").build();
 
         given(carouselSlideRepository.findMaxSortOrder()).willReturn(Optional.empty());
         given(storageService.move(any(), any())).willReturn("https://cdn.example.com/slide.jpg");
@@ -144,10 +141,9 @@ class AdminCarouselServiceTest {
     @DisplayName("CALENDAR 타입 슬라이드 생성 성공")
     void createSlide_calendarType_success() {
         // given
-        CarouselSlideCreateRequest request = new CarouselSlideCreateRequest();
-        ReflectionTestUtils.setField(request, "type", SlideType.CALENDAR);
-        ReflectionTestUtils.setField(request, "title", "5월 일정");
-        ReflectionTestUtils.setField(request, "tempPath", "https://cdn.example.com/calendar.jpg");
+        CarouselSlideCreateRequest request = CarouselSlideCreateRequest.builder()
+                .type(SlideType.CALENDAR).title("5월 일정")
+                .tempPath("https://cdn.example.com/calendar.jpg").build();
 
         given(carouselSlideRepository.findMaxSortOrder()).willReturn(Optional.empty());
         given(storageService.move(any(), any())).willReturn("https://cdn.example.com/slide.jpg");
@@ -165,10 +161,9 @@ class AdminCarouselServiceTest {
     @DisplayName("GATHERING 타입인데 gatheringId 없으면 GATHERING_ID_REQUIRED 예외")
     void createSlide_gatheringTypeWithoutGatheringId_throwsException() {
         // given
-        CarouselSlideCreateRequest request = new CarouselSlideCreateRequest();
-        ReflectionTestUtils.setField(request, "type", SlideType.GATHERING);
-        ReflectionTestUtils.setField(request, "title", "5월 소풍 모임");
-        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg");
+        CarouselSlideCreateRequest request = CarouselSlideCreateRequest.builder()
+                .type(SlideType.GATHERING).title("5월 소풍 모임")
+                .tempPath("temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg").build();
 
         // when & then
         assertThatThrownBy(() -> adminCarouselService.createSlide(request))
@@ -180,10 +175,9 @@ class AdminCarouselServiceTest {
     @DisplayName("STORY 타입인데 content 없으면 SLIDE_CONTENT_REQUIRED 예외")
     void createSlide_storyTypeWithoutContent_throwsException() {
         // given
-        CarouselSlideCreateRequest request = new CarouselSlideCreateRequest();
-        ReflectionTestUtils.setField(request, "type", SlideType.STORY);
-        ReflectionTestUtils.setField(request, "title", "봄 나들이 모임");
-        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg");
+        CarouselSlideCreateRequest request = CarouselSlideCreateRequest.builder()
+                .type(SlideType.STORY).title("봄 나들이 모임")
+                .tempPath("temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg").build();
 
         // when & then
         assertThatThrownBy(() -> adminCarouselService.createSlide(request))
@@ -195,11 +189,10 @@ class AdminCarouselServiceTest {
     @DisplayName("GATHERING 타입에 존재하지 않는 gatheringId → GATHERING_NOT_FOUND 예외")
     void createSlide_gatheringNotFound_throwsException() {
         // given
-        CarouselSlideCreateRequest request = new CarouselSlideCreateRequest();
-        ReflectionTestUtils.setField(request, "type", SlideType.GATHERING);
-        ReflectionTestUtils.setField(request, "title", "5월 소풍 모임");
-        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg");
-        ReflectionTestUtils.setField(request, "gatheringId", gatheringId);
+        CarouselSlideCreateRequest request = CarouselSlideCreateRequest.builder()
+                .type(SlideType.GATHERING).title("5월 소풍 모임")
+                .tempPath("temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg")
+                .gatheringId(gatheringId).build();
 
         given(gatheringRepository.findByIdAndDeletedAtIsNull(gatheringId)).willReturn(Optional.empty());
 
@@ -213,11 +206,9 @@ class AdminCarouselServiceTest {
     @DisplayName("sortOrder 미입력 시 MAX+1 자동 배정")
     void createSlide_noSortOrder_assignsMaxPlusOne() {
         // given
-        CarouselSlideCreateRequest request = new CarouselSlideCreateRequest();
-        ReflectionTestUtils.setField(request, "type", SlideType.STORY);
-        ReflectionTestUtils.setField(request, "title", "봄 나들이 모임");
-        ReflectionTestUtils.setField(request, "content", "함께 봄꽃 구경 가요!");
-        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg");
+        CarouselSlideCreateRequest request = CarouselSlideCreateRequest.builder()
+                .type(SlideType.STORY).title("봄 나들이 모임").content("함께 봄꽃 구경 가요!")
+                .tempPath("temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg").build();
 
         given(carouselSlideRepository.findMaxSortOrder()).willReturn(Optional.of(2));
         given(storageService.move(any(), any())).willReturn("https://cdn.example.com/slide.jpg");
@@ -234,11 +225,9 @@ class AdminCarouselServiceTest {
     @DisplayName("sortOrder 미입력이고 슬라이드 없을 시 0 배정")
     void createSlide_noSortOrderAndNoSlides_assignsZero() {
         // given
-        CarouselSlideCreateRequest request = new CarouselSlideCreateRequest();
-        ReflectionTestUtils.setField(request, "type", SlideType.STORY);
-        ReflectionTestUtils.setField(request, "title", "봄 나들이 모임");
-        ReflectionTestUtils.setField(request, "content", "함께 봄꽃 구경 가요!");
-        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg");
+        CarouselSlideCreateRequest request = CarouselSlideCreateRequest.builder()
+                .type(SlideType.STORY).title("봄 나들이 모임").content("함께 봄꽃 구경 가요!")
+                .tempPath("temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg").build();
 
         given(carouselSlideRepository.findMaxSortOrder()).willReturn(Optional.empty());
         given(storageService.move(any(), any())).willReturn("https://cdn.example.com/slide.jpg");
@@ -255,12 +244,10 @@ class AdminCarouselServiceTest {
     @DisplayName("GATHERING 타입 생성 시 content null 강제")
     void createSlide_gatheringType_contentForcedNull() {
         // given
-        CarouselSlideCreateRequest request = new CarouselSlideCreateRequest();
-        ReflectionTestUtils.setField(request, "type", SlideType.GATHERING);
-        ReflectionTestUtils.setField(request, "title", "5월 소풍 모임");
-        ReflectionTestUtils.setField(request, "content", "이 값은 무시되어야 함");
-        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg");
-        ReflectionTestUtils.setField(request, "gatheringId", gatheringId);
+        CarouselSlideCreateRequest request = CarouselSlideCreateRequest.builder()
+                .type(SlideType.GATHERING).title("5월 소풍 모임").content("이 값은 무시되어야 함")
+                .tempPath("temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg")
+                .gatheringId(gatheringId).build();
 
         given(gatheringRepository.findByIdAndDeletedAtIsNull(gatheringId)).willReturn(Optional.of(gathering));
         given(carouselSlideRepository.findMaxSortOrder()).willReturn(Optional.empty());
@@ -280,11 +267,9 @@ class AdminCarouselServiceTest {
     @DisplayName("슬라이드 수정 성공")
     void updateSlide_success() {
         // given
-        CarouselSlideUpdateRequest request = new CarouselSlideUpdateRequest();
-        ReflectionTestUtils.setField(request, "type", SlideType.STORY);
-        ReflectionTestUtils.setField(request, "title", "수정된 제목");
-        ReflectionTestUtils.setField(request, "content", "수정된 내용");
-        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440001.jpg");
+        CarouselSlideUpdateRequest request = CarouselSlideUpdateRequest.builder()
+                .type(SlideType.STORY).title("수정된 제목").content("수정된 내용")
+                .tempPath("temp/carousel/550e8400-e29b-41d4-a716-446655440001.jpg").build();
 
         given(carouselSlideRepository.findByIdAndDeletedAtIsNull(slideId)).willReturn(Optional.of(slide));
         given(storageService.move(any(), any())).willReturn("https://cdn.example.com/updated.jpg");
@@ -301,11 +286,9 @@ class AdminCarouselServiceTest {
     @DisplayName("존재하지 않는 slideId 수정 시 SLIDE_NOT_FOUND 예외")
     void updateSlide_notFound_throwsException() {
         // given
-        CarouselSlideUpdateRequest request = new CarouselSlideUpdateRequest();
-        ReflectionTestUtils.setField(request, "type", SlideType.STORY);
-        ReflectionTestUtils.setField(request, "title", "수정된 제목");
-        ReflectionTestUtils.setField(request, "content", "수정된 내용");
-        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440001.jpg");
+        CarouselSlideUpdateRequest request = CarouselSlideUpdateRequest.builder()
+                .type(SlideType.STORY).title("수정된 제목").content("수정된 내용")
+                .tempPath("temp/carousel/550e8400-e29b-41d4-a716-446655440001.jpg").build();
 
         given(carouselSlideRepository.findByIdAndDeletedAtIsNull(slideId)).willReturn(Optional.empty());
 
@@ -348,8 +331,7 @@ class AdminCarouselServiceTest {
     @DisplayName("isActive=true로 변경 → activate() 호출 확인")
     void toggleActive_activate_isActiveTrue() {
         // given
-        CarouselSlideActiveRequest request = new CarouselSlideActiveRequest();
-        ReflectionTestUtils.setField(request, "isActive", true);
+        CarouselSlideActiveRequest request = CarouselSlideActiveRequest.builder().isActive(true).build();
 
         given(carouselSlideRepository.findByIdAndDeletedAtIsNull(slideId)).willReturn(Optional.of(slide));
 
@@ -364,8 +346,7 @@ class AdminCarouselServiceTest {
     @DisplayName("isActive=false로 변경 → deactivate() 호출 확인")
     void toggleActive_deactivate_isActiveFalse() {
         // given
-        CarouselSlideActiveRequest request = new CarouselSlideActiveRequest();
-        ReflectionTestUtils.setField(request, "isActive", false);
+        CarouselSlideActiveRequest request = CarouselSlideActiveRequest.builder().isActive(false).build();
 
         slide.activate();
         given(carouselSlideRepository.findByIdAndDeletedAtIsNull(slideId)).willReturn(Optional.of(slide));
@@ -381,8 +362,7 @@ class AdminCarouselServiceTest {
     @DisplayName("존재하지 않는 slideId 활성 전환 시 SLIDE_NOT_FOUND 예외")
     void toggleActive_notFound_throwsException() {
         // given
-        CarouselSlideActiveRequest request = new CarouselSlideActiveRequest();
-        ReflectionTestUtils.setField(request, "isActive", true);
+        CarouselSlideActiveRequest request = CarouselSlideActiveRequest.builder().isActive(true).build();
 
         given(carouselSlideRepository.findByIdAndDeletedAtIsNull(slideId)).willReturn(Optional.empty());
 
@@ -416,8 +396,8 @@ class AdminCarouselServiceTest {
         ReflectionTestUtils.setField(slide2, "id", slideId2);
         ReflectionTestUtils.setField(slide3, "id", slideId3);
 
-        CarouselSlideOrderRequest request = new CarouselSlideOrderRequest();
-        ReflectionTestUtils.setField(request, "slideIds", List.of(slideId1, slideId2, slideId3));
+        CarouselSlideOrderRequest request = CarouselSlideOrderRequest.builder()
+                .slideIds(List.of(slideId1, slideId2, slideId3)).build();
 
         given(carouselSlideRepository.findAllByIdInAndDeletedAtIsNull(List.of(slideId1, slideId2, slideId3)))
                 .willReturn(List.of(slide1, slide2, slide3));
@@ -436,8 +416,8 @@ class AdminCarouselServiceTest {
     void reorderSlides_notFound_throwsException() {
         // given
         UUID unknownId = UUID.randomUUID();
-        CarouselSlideOrderRequest request = new CarouselSlideOrderRequest();
-        ReflectionTestUtils.setField(request, "slideIds", List.of(unknownId));
+        CarouselSlideOrderRequest request = CarouselSlideOrderRequest.builder()
+                .slideIds(List.of(unknownId)).build();
 
         given(carouselSlideRepository.findAllByIdInAndDeletedAtIsNull(List.of(unknownId)))
                 .willReturn(List.of());

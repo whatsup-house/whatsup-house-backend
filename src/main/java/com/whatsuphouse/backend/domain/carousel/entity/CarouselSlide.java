@@ -74,6 +74,10 @@ public class CarouselSlide extends BaseEntity {
         this.isActive = false;
     }
 
+    public void updateSortOrder(int sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
     public void delete() {
         super.delete();
     }

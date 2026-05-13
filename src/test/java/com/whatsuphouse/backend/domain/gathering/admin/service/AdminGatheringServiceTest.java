@@ -157,7 +157,7 @@ class AdminGatheringServiceTest {
     // ── createGathering() ────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("thumbnailTempPath가 있으면 storageService.move() 호출 후 URL 저장")
+    @DisplayName("thumbnailUrl가 있으면 storageService.move() 호출 후 URL 저장")
     void createGathering_withThumbnailTempPath_movesFileAndSavesUrl() {
         // given
         String tempPath = "temp/gathering/550e8400.jpg";
@@ -176,7 +176,7 @@ class AdminGatheringServiceTest {
     }
 
     @Test
-    @DisplayName("thumbnailTempPath가 null이면 storageService.move() 미호출, thumbnailUrl은 null")
+    @DisplayName("thumbnailUrl가 null이면 storageService.move() 미호출, thumbnailUrl은 null")
     void createGathering_withoutThumbnailTempPath_thumbnailUrlIsNull() {
         // given
         GatheringCreateRequest request = buildCreateRequest("재즈 게더링", null);
@@ -192,7 +192,7 @@ class AdminGatheringServiceTest {
     }
 
     @Test
-    @DisplayName("thumbnailTempPath가 빈 문자열이면 storageService.move() 미호출, thumbnailUrl은 null")
+    @DisplayName("thumbnailUrl가 빈 문자열이면 storageService.move() 미호출, thumbnailUrl은 null")
     void createGathering_withBlankThumbnailTempPath_thumbnailUrlIsNull() {
         // given
         GatheringCreateRequest request = buildCreateRequest("재즈 게더링", "");
@@ -208,7 +208,7 @@ class AdminGatheringServiceTest {
     }
 
     @Test
-    @DisplayName("thumbnailTempPath가 빈 문자열이면 storageService.move() 미호출, 기존 thumbnailUrl 유지")
+    @DisplayName("thumbnailUrl가 빈 문자열이면 storageService.move() 미호출, 기존 thumbnailUrl 유지")
     void updateGathering_withBlankThumbnailTempPath_keepsPreviousThumbnailUrl() {
         // given
         String existingUrl = "https://example.com/thumb.jpg";
@@ -257,7 +257,7 @@ class AdminGatheringServiceTest {
     // ── updateGathering() ────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("thumbnailTempPath가 있으면 storageService.move() 호출 후 URL 교체")
+    @DisplayName("thumbnailUrl가 있으면 storageService.move() 호출 후 URL 교체")
     void updateGathering_withThumbnailTempPath_movesFileAndReplacesUrl() {
         // given
         String tempPath = "temp/gathering/new-thumb.jpg";
@@ -276,7 +276,7 @@ class AdminGatheringServiceTest {
     }
 
     @Test
-    @DisplayName("thumbnailTempPath가 null이면 storageService.move() 미호출, 기존 thumbnailUrl 유지")
+    @DisplayName("thumbnailUrl가 null이면 storageService.move() 미호출, 기존 thumbnailUrl 유지")
     void updateGathering_withoutThumbnailTempPath_keepsPreviousThumbnailUrl() {
         // given
         String existingUrl = "https://example.com/thumb.jpg";
@@ -393,29 +393,21 @@ class AdminGatheringServiceTest {
 
     // ── helpers ──────────────────────────────────────────────────────────────
 
-    private GatheringCreateRequest buildCreateRequest(String title, String thumbnailTempPath) {
-        GatheringCreateRequest request = new GatheringCreateRequest();
-        ReflectionTestUtils.setField(request, "title", title);
-        ReflectionTestUtils.setField(request, "locationId", locationId);
-        ReflectionTestUtils.setField(request, "eventDate", LocalDate.now().plusDays(7));
-        ReflectionTestUtils.setField(request, "maxAttendees", 10);
-        ReflectionTestUtils.setField(request, "thumbnailTempPath", thumbnailTempPath);
-        return request;
+    private GatheringCreateRequest buildCreateRequest(String title, String thumbnailUrl) {
+        return GatheringCreateRequest.builder()
+                .title(title).locationId(locationId)
+                .eventDate(LocalDate.now().plusDays(7)).maxAttendees(10)
+                .thumbnailUrl(thumbnailUrl).build();
     }
 
-    private GatheringUpdateRequest buildUpdateRequest(String title, String thumbnailTempPath) {
-        GatheringUpdateRequest request = new GatheringUpdateRequest();
-        ReflectionTestUtils.setField(request, "title", title);
-        ReflectionTestUtils.setField(request, "locationId", locationId);
-        ReflectionTestUtils.setField(request, "eventDate", LocalDate.now().plusDays(7));
-        ReflectionTestUtils.setField(request, "maxAttendees", 10);
-        ReflectionTestUtils.setField(request, "thumbnailTempPath", thumbnailTempPath);
-        return request;
+    private GatheringUpdateRequest buildUpdateRequest(String title, String thumbnailUrl) {
+        return GatheringUpdateRequest.builder()
+                .title(title).locationId(locationId)
+                .eventDate(LocalDate.now().plusDays(7)).maxAttendees(10)
+                .thumbnailUrl(thumbnailUrl).build();
     }
 
     private GatheringStatusRequest buildStatusRequest(GatheringStatus status) {
-        GatheringStatusRequest request = new GatheringStatusRequest();
-        ReflectionTestUtils.setField(request, "status", status);
-        return request;
+        return GatheringStatusRequest.builder().status(status).build();
     }
 }

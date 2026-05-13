@@ -130,7 +130,7 @@ public class AdminCarouselService {
         for (int i = 0; i < slideIds.size(); i++) {
             CarouselSlide slide = Optional.ofNullable(slideMap.get(slideIds.get(i)))
                     .orElseThrow(() -> new CustomException(ErrorCode.SLIDE_NOT_FOUND));
-            slide.update(slide.getType(), slide.getTitle(), slide.getContent(), slide.getImageUrl(), slide.getGathering(), i);
+            slide.updateSortOrder(i);
         }
     }
 

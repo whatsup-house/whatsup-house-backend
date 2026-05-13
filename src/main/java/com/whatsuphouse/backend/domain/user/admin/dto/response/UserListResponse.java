@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Getter
 @Builder
-public class UserAdminListResponse {
+public class UserListResponse {
 
     @Schema(description = "회원 ID", example = "550e8400-e29b-41d4-a716-446655440000")
     private UUID id;
@@ -39,8 +39,8 @@ public class UserAdminListResponse {
     @Schema(description = "가입일시", example = "2024-01-15T10:30:00")
     private LocalDateTime createdAt;
 
-    public static UserAdminListResponse of(User user, long totalApplications, long attendedCount) {
-        return UserAdminListResponse.builder()
+    public static UserListResponse of(User user, long totalApplications, long attendedCount) {
+        return UserListResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .nickname(user.getNickname())

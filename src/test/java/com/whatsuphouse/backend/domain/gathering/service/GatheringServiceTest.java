@@ -57,7 +57,7 @@ class GatheringServiceTest {
     void getGatherings_noFilter_returnsAll() {
         given(gatheringRepository.findByDeletedAtIsNull()).willReturn(List.of(gathering));
 
-        List<GatheringResponse> result = gatheringService.getGatherings(null, null);
+        List<GatheringResponse> result = gatheringService.listGatherings(null, null);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getTitle()).isEqualTo("재즈 게더링");
@@ -68,7 +68,7 @@ class GatheringServiceTest {
     void getGatherings_byDate_returnsFiltered() {
         given(gatheringRepository.findByEventDateAndDeletedAtIsNull(eventDate)).willReturn(List.of(gathering));
 
-        List<GatheringResponse> result = gatheringService.getGatherings(eventDate, null);
+        List<GatheringResponse> result = gatheringService.listGatherings(eventDate, null);
 
         assertThat(result).hasSize(1);
     }
@@ -78,7 +78,7 @@ class GatheringServiceTest {
     void getGatherings_byStatus_returnsFiltered() {
         given(gatheringRepository.findByStatusAndDeletedAtIsNull(GatheringStatus.OPEN)).willReturn(List.of(gathering));
 
-        List<GatheringResponse> result = gatheringService.getGatherings(null, GatheringStatus.OPEN);
+        List<GatheringResponse> result = gatheringService.listGatherings(null, GatheringStatus.OPEN);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getStatus()).isEqualTo(GatheringStatus.OPEN);
@@ -90,7 +90,7 @@ class GatheringServiceTest {
         given(gatheringRepository.findByEventDateAndStatusAndDeletedAtIsNull(eventDate, GatheringStatus.OPEN))
                 .willReturn(List.of(gathering));
 
-        List<GatheringResponse> result = gatheringService.getGatherings(eventDate, GatheringStatus.OPEN);
+        List<GatheringResponse> result = gatheringService.listGatherings(eventDate, GatheringStatus.OPEN);
 
         assertThat(result).hasSize(1);
     }

@@ -1,6 +1,6 @@
 package com.whatsuphouse.backend.domain.user.admin.controller;
 
-import com.whatsuphouse.backend.domain.user.admin.dto.response.UserAdminPageResponse;
+import com.whatsuphouse.backend.domain.user.admin.dto.response.UserPageResponse;
 import com.whatsuphouse.backend.domain.user.admin.service.AdminUserService;
 import com.whatsuphouse.backend.global.common.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,7 +27,7 @@ public class AdminUserController {
 
     @Operation(summary = "회원 목록 조회", description = "전체 회원 목록을 페이지네이션으로 조회한다. 닉네임 또는 이메일 부분 일치 검색을 지원한다.")
     @GetMapping
-    public ResponseEntity<ApiResult<UserAdminPageResponse>> listUsers(
+    public ResponseEntity<ApiResult<UserPageResponse>> listUsers(
             @Parameter(description = "닉네임 또는 이메일 검색어", example = "홍길동")
             @RequestParam(required = false) String search,
 

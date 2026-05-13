@@ -4,13 +4,19 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
 
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class GatheringCreateRequest {
 
     @Schema(example = "4월 홍대 소셜 게더링")

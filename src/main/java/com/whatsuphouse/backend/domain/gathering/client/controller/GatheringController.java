@@ -27,13 +27,13 @@ public class GatheringController {
 
     @Operation(summary = "모임 목록 조회", description = "날짜 및 상태로 필터링하여 모임 목록을 조회합니다.")
     @GetMapping
-    public ResponseEntity<ApiResult<List<GatheringResponse>>> getGatherings(
+    public ResponseEntity<ApiResult<List<GatheringResponse>>> listGatherings(
             @Parameter(description = "날짜 필터 (YYYY-MM-DD)", example = "2026-04-21")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @Parameter(description = "상태 필터", example = "OPEN")
             @RequestParam(required = false) GatheringStatus status
     ) {
-        return ResponseEntity.ok(ApiResult.success(gatheringService.getGatherings(date, status)));
+        return ResponseEntity.ok(ApiResult.success(gatheringService.listGatherings(date, status)));
     }
 
     @Operation(summary = "모임 상세 조회", description = "모임 상세 정보를 조회합니다. 장소 정보(주소, 지도 URL)를 포함합니다.")

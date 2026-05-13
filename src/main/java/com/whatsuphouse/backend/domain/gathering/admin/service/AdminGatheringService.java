@@ -89,8 +89,8 @@ public class AdminGatheringService {
                 .orElseThrow(() -> new CustomException(ErrorCode.LOCATION_NOT_FOUND));
         // Storage move는 @Transactional 내부에서 호출됨. DB save 실패 시 파일은 롤백 불가.
         // 소규모 어드민 API 특성상 현 구조를 유지하며 trade-off를 허용함 (Carousel과 동일 패턴).
-        String thumbnailUrl = StringUtils.hasText(request.getThumbnailTempPath())
-                ? storageService.move(request.getThumbnailTempPath(), "gathering")
+        String thumbnailUrl = StringUtils.hasText(request.getThumbnailUrl())
+                ? storageService.move(request.getThumbnailUrl(), "gathering")
                 : null;
         Gathering gathering = Gathering.builder()
                 .title(request.getTitle())
@@ -114,8 +114,8 @@ public class AdminGatheringService {
                 .orElseThrow(() -> new CustomException(ErrorCode.LOCATION_NOT_FOUND));
         // Storage move는 @Transactional 내부에서 호출됨. DB save 실패 시 파일은 롤백 불가.
         // 소규모 어드민 API 특성상 현 구조를 유지하며 trade-off를 허용함 (Carousel과 동일 패턴).
-        String thumbnailUrl = StringUtils.hasText(request.getThumbnailTempPath())
-                ? storageService.move(request.getThumbnailTempPath(), "gathering")
+        String thumbnailUrl = StringUtils.hasText(request.getThumbnailUrl())
+                ? storageService.move(request.getThumbnailUrl(), "gathering")
                 : gathering.getThumbnailUrl();
         gathering.update(request.getTitle(), request.getDescription(), location,
                 request.getEventDate(), request.getStartTime(), request.getEndTime(),

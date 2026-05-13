@@ -152,12 +152,8 @@ class UserServiceTest {
     // ── helpers ──────────────────────────────────────────────────────────────
 
     private ProfileUpdateRequest buildUpdateRequest(String nickname) {
-        ProfileUpdateRequest request = new ProfileUpdateRequest();
-        ReflectionTestUtils.setField(request, "nickname", nickname);
-        ReflectionTestUtils.setField(request, "phone", "01087654321");
-        ReflectionTestUtils.setField(request, "name", "홍길동");
-        ReflectionTestUtils.setField(request, "gender", Gender.MALE);
-        ReflectionTestUtils.setField(request, "age", 25);
-        return request;
+        return ProfileUpdateRequest.builder()
+                .nickname(nickname).phone("01087654321").name("홍길동")
+                .gender(Gender.MALE).age(25).build();
     }
 }

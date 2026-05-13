@@ -1,9 +1,9 @@
 package com.whatsuphouse.backend.domain.application.admin.service;
 
-import com.whatsuphouse.backend.domain.application.admin.dto.request.AdminApplicationStatusRequest;
-import com.whatsuphouse.backend.domain.application.admin.dto.response.AdminApplicationDeleteResponse;
+import com.whatsuphouse.backend.domain.application.admin.dto.request.ApplicationStatusRequest;
+import com.whatsuphouse.backend.domain.application.admin.dto.response.ApplicationDeleteResponse;
 import com.whatsuphouse.backend.domain.application.admin.dto.response.AdminApplicationResponse;
-import com.whatsuphouse.backend.domain.application.admin.dto.response.AdminApplicationStatusResponse;
+import com.whatsuphouse.backend.domain.application.admin.dto.response.ApplicationStatusResponse;
 import com.whatsuphouse.backend.domain.application.entity.Application;
 import com.whatsuphouse.backend.domain.application.enums.ApplicationStatus;
 import com.whatsuphouse.backend.domain.application.repository.ApplicationRepository;
@@ -195,10 +195,10 @@ class AdminApplicationServiceTest {
     void changeStatus_toConfirmed_success() {
         // GIVEN
         given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.of(application));
-        AdminApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.CONFIRMED);
+        ApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.CONFIRMED);
 
         // WHEN
-        AdminApplicationStatusResponse response = adminApplicationService.changeStatus(applicationId, request);
+        ApplicationStatusResponse response = adminApplicationService.changeStatus(applicationId, request);
 
         // THEN
         assertThat(response.getStatus()).isEqualTo(ApplicationStatus.CONFIRMED);
@@ -210,7 +210,7 @@ class AdminApplicationServiceTest {
 void changeStatus_toCancelled_throwsException() {
     // GIVEN
     given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.of(application));
-    AdminApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.CANCELLED);
+    ApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.CANCELLED);
 
     // WHEN & THEN
     assertThatThrownBy(() -> adminApplicationService.changeStatus(applicationId, request))
@@ -224,10 +224,10 @@ void changeStatus_toCancelled_throwsException() {
     void changeStatus_toAttended_guest_noMileage() {
         // GIVEN — application.user == null (게스트)
         given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.of(application));
-        AdminApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.ATTENDED);
+        ApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.ATTENDED);
 
         // WHEN
-        AdminApplicationStatusResponse response = adminApplicationService.changeStatus(applicationId, request);
+        ApplicationStatusResponse response = adminApplicationService.changeStatus(applicationId, request);
 
         // THEN
         assertThat(response.getStatus()).isEqualTo(ApplicationStatus.ATTENDED);
@@ -259,10 +259,10 @@ void changeStatus_toCancelled_throwsException() {
 
         given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.of(memberApplication));
         given(mileageService.rewardAttendance(eq(user), eq(applicationId))).willReturn(history);
-        AdminApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.ATTENDED);
+        ApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.ATTENDED);
 
         // WHEN
-        AdminApplicationStatusResponse response = adminApplicationService.changeStatus(applicationId, request);
+        ApplicationStatusResponse response = adminApplicationService.changeStatus(applicationId, request);
 
         // THEN
         assertThat(response.getStatus()).isEqualTo(ApplicationStatus.ATTENDED);
@@ -276,7 +276,7 @@ void changeStatus_toCancelled_throwsException() {
         // GIVEN
         application.attend();
         given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.of(application));
-        AdminApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.ATTENDED);
+        ApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.ATTENDED);
 
         // WHEN & THEN
         assertThatThrownBy(() -> adminApplicationService.changeStatus(applicationId, request))
@@ -289,7 +289,7 @@ void changeStatus_toCancelled_throwsException() {
     void changeStatus_toPending_throwsException() {
         // GIVEN
         given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.of(application));
-        AdminApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.PENDING);
+        ApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.PENDING);
 
         // WHEN & THEN
         assertThatThrownBy(() -> adminApplicationService.changeStatus(applicationId, request))
@@ -302,7 +302,7 @@ void changeStatus_toCancelled_throwsException() {
     void changeStatus_notFound_throwsException() {
         // GIVEN
         given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.empty());
-        AdminApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.CONFIRMED);
+        ApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.CONFIRMED);
 
         // WHEN & THEN
         assertThatThrownBy(() -> adminApplicationService.changeStatus(applicationId, request))
@@ -320,7 +320,7 @@ void changeStatus_toCancelled_throwsException() {
         UUID id = applicationId;
 
         //WHEN
-        AdminApplicationDeleteResponse response = adminApplicationService.deleteApplication(id);
+        ApplicationDeleteResponse response = adminApplicationService.deleteApplication(id);
         // THEN
         assertThat(response.getStatus()).isEqualTo(ApplicationStatus.CANCELLED);
     }
@@ -334,7 +334,7 @@ void changeStatus_toCancelled_throwsException() {
         application.cancel();
 
         //WHEN
-        AdminApplicationDeleteResponse response = adminApplicationService.deleteApplication(id);
+        ApplicationDeleteResponse response = adminApplicationService.deleteApplication(id);
         // THEN
         assertThat(response.getStatus()).isEqualTo(ApplicationStatus.CANCELLED);
     }
@@ -355,9 +355,7 @@ void changeStatus_toCancelled_throwsException() {
 
     // ── helpers ──────────────────────────────────────────────────────────────
 
-    private AdminApplicationStatusRequest buildStatusRequest(ApplicationStatus status) {
-        AdminApplicationStatusRequest request = new AdminApplicationStatusRequest();
-        ReflectionTestUtils.setField(request, "status", status);
-        return request;
+    private ApplicationStatusRequest buildStatusRequest(ApplicationStatus status) {
+        return ApplicationStatusRequest.builder().status(status).build();
     }
 }

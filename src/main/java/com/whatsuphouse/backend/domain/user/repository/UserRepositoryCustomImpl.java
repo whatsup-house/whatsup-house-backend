@@ -21,7 +21,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<UserApplicationStatsRow> findUsersWithApplicationStats(String search, Pageable pageable) {
+    public Page<UserApplicationStatsProjection> findUsersWithApplicationStats(String search, Pageable pageable) {
         QUser user = QUser.user;
         QApplication application = QApplication.application;
 
@@ -40,7 +40,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
                 .then(1L)
                 .otherwise(0L).sum();
 
-        List<UserApplicationStatsRow> results = queryFactory
+        List<UserApplicationStatsProjection> results = queryFactory
                 .select(user, application.id.count(), attendedCount)
                 .from(user)
                 .leftJoin(application).on(
@@ -54,7 +54,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
                 .limit(pageable.getPageSize())
                 .fetch()
                 .stream()
-                .map(t -> new UserApplicationStatsRow(
+                .map(t -> new UserApplicationStatsProjection(
                         t.get(user),
                         t.get(application.id.count()) != null ? t.get(application.id.count()) : 0L,
                         t.get(attendedCount) != null ? t.get(attendedCount) : 0L

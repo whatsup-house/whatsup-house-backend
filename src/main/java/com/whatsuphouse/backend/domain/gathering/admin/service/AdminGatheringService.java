@@ -15,9 +15,11 @@ import com.whatsuphouse.backend.domain.location.entity.Location;
 import com.whatsuphouse.backend.domain.location.repository.LocationRepository;
 import com.whatsuphouse.backend.global.exception.CustomException;
 import com.whatsuphouse.backend.global.exception.ErrorCode;
+import com.whatsuphouse.backend.global.storage.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -34,6 +36,7 @@ public class AdminGatheringService {
     private final GatheringRepository gatheringRepository;
     private final LocationRepository locationRepository;
     private final ApplicationRepository applicationRepository;
+    private final StorageService storageService;
 
     public List<AdminGatheringResponse> listGatherings(
             GatheringStatus status, LocalDate eventDate, LocalDate from, LocalDate to) {
@@ -81,6 +84,11 @@ public class AdminGatheringService {
     public GatheringDetailResponse createGathering(GatheringCreateRequest request) {
         Location location = locationRepository.findByIdAndDeletedAtIsNull(request.getLocationId())
                 .orElseThrow(() -> new CustomException(ErrorCode.LOCATION_NOT_FOUND));
+        // Storage move는 @Transactional 내부에서 호출됨. DB save 실패 시 파일은 롤백 불가.
+        // 소규모 어드민 API 특성상 현 구조를 유지하며 trade-off를 허용함 (Carousel과 동일 패턴).
+        String thumbnailUrl = StringUtils.hasText(request.getThumbnailTempPath())
+                ? storageService.move(request.getThumbnailTempPath(), "gathering")
+                : null;
         Gathering gathering = Gathering.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
@@ -90,7 +98,7 @@ public class AdminGatheringService {
                 .endTime(request.getEndTime())
                 .price(request.getPrice())
                 .maxAttendees(request.getMaxAttendees())
-                .thumbnailUrl(request.getThumbnailUrl())
+                .thumbnailUrl(thumbnailUrl)
                 .build();
         return GatheringDetailResponse.from(gatheringRepository.save(gathering));
     }
@@ -101,9 +109,14 @@ public class AdminGatheringService {
                 .orElseThrow(() -> new CustomException(ErrorCode.GATHERING_NOT_FOUND));
         Location location = locationRepository.findByIdAndDeletedAtIsNull(request.getLocationId())
                 .orElseThrow(() -> new CustomException(ErrorCode.LOCATION_NOT_FOUND));
+        // Storage move는 @Transactional 내부에서 호출됨. DB save 실패 시 파일은 롤백 불가.
+        // 소규모 어드민 API 특성상 현 구조를 유지하며 trade-off를 허용함 (Carousel과 동일 패턴).
+        String thumbnailUrl = StringUtils.hasText(request.getThumbnailTempPath())
+                ? storageService.move(request.getThumbnailTempPath(), "gathering")
+                : gathering.getThumbnailUrl();
         gathering.update(request.getTitle(), request.getDescription(), location,
                 request.getEventDate(), request.getStartTime(), request.getEndTime(),
-                request.getPrice(), request.getMaxAttendees(), request.getThumbnailUrl());
+                request.getPrice(), request.getMaxAttendees(), thumbnailUrl);
         return GatheringDetailResponse.from(gathering);
     }
 

@@ -56,6 +56,8 @@ public class AdminCarouselService {
         String content = request.getType() == SlideType.GATHERING ? null : request.getContent();
         Gathering finalGathering = request.getType() != SlideType.GATHERING ? null : gathering;
 
+        // Storage move는 @Transactional 내부에서 호출됨. DB save 실패 시 파일은 롤백 불가.
+        // 소규모 어드민 API 특성상 현 구조를 유지하며 trade-off를 허용함 (Gathering과 동일 패턴).
         String imageUrl = storageService.move(request.getTempPath(), "carousel");
 
         CarouselSlide slide = CarouselSlide.builder()
@@ -91,6 +93,8 @@ public class AdminCarouselService {
                 ? request.getSortOrder()
                 : slide.getSortOrder();
 
+        // Storage move는 @Transactional 내부에서 호출됨. DB save 실패 시 파일은 롤백 불가.
+        // 소규모 어드민 API 특성상 현 구조를 유지하며 trade-off를 허용함 (Gathering과 동일 패턴).
         String imageUrl = storageService.move(request.getTempPath(), "carousel");
         slide.update(request.getType(), request.getTitle(), content, imageUrl, finalGathering, sortOrder);
 

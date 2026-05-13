@@ -4,6 +4,8 @@ import com.whatsuphouse.backend.domain.application.enums.ApplicationStatus;
 import com.whatsuphouse.backend.domain.application.repository.ApplicationRepository;
 import com.whatsuphouse.backend.domain.application.repository.ApplicationRepository.ApplicationCountProjection;
 import com.whatsuphouse.backend.domain.gathering.admin.dto.request.GatheringCreateRequest;
+import com.whatsuphouse.backend.domain.gathering.admin.dto.request.GatheringCurationOrderRequest;
+import com.whatsuphouse.backend.domain.gathering.admin.dto.request.GatheringCurationRequest;
 import com.whatsuphouse.backend.domain.gathering.admin.dto.request.GatheringStatusRequest;
 import com.whatsuphouse.backend.domain.gathering.admin.dto.request.GatheringUpdateRequest;
 import com.whatsuphouse.backend.domain.gathering.admin.dto.response.AdminGatheringResponse;
@@ -25,6 +27,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -125,5 +128,27 @@ public class AdminGatheringService {
         Gathering gathering = gatheringRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.GATHERING_NOT_FOUND));
         gathering.changeStatus(request.getStatus());
+    }
+
+    @Transactional
+    public void toggleCuration(UUID id, GatheringCurationRequest request) {
+        Gathering gathering = gatheringRepository.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.GATHERING_NOT_FOUND));
+        gathering.updateCuration(request.getIsCurated());
+    }
+
+    @Transactional
+    public void reorderCurated(GatheringCurationOrderRequest request) {
+        List<UUID> ids = request.getGatheringIds();
+        Map<UUID, Gathering> gatheringMap = gatheringRepository.findByIdInAndDeletedAtIsNull(ids)
+                .stream()
+                .collect(Collectors.toMap(Gathering::getId, g -> g));
+
+        for (int i = 0; i < ids.size(); i++) {
+            UUID id = ids.get(i);
+            Gathering gathering = Optional.ofNullable(gatheringMap.get(id))
+                    .orElseThrow(() -> new CustomException(ErrorCode.GATHERING_NOT_FOUND));
+            gathering.updateCuratedRank(i);
+        }
     }
 }

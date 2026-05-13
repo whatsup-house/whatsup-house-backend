@@ -1,6 +1,8 @@
 package com.whatsuphouse.backend.domain.gathering.admin.controller;
 
 import com.whatsuphouse.backend.domain.gathering.admin.dto.request.GatheringCreateRequest;
+import com.whatsuphouse.backend.domain.gathering.admin.dto.request.GatheringCurationOrderRequest;
+import com.whatsuphouse.backend.domain.gathering.admin.dto.request.GatheringCurationRequest;
 import com.whatsuphouse.backend.domain.gathering.admin.dto.request.GatheringStatusRequest;
 import com.whatsuphouse.backend.domain.gathering.admin.dto.request.GatheringUpdateRequest;
 import com.whatsuphouse.backend.domain.gathering.admin.dto.response.AdminGatheringResponse;
@@ -67,5 +69,24 @@ public class AdminGatheringController {
     ) {
         adminGatheringService.changeStatus(id, request);
         return ResponseEntity.ok(ApiResult.success("모임 상태가 변경되었습니다.", null));
+    }
+
+    @Operation(summary = "큐레이션 토글", description = "관리자 권한이 필요합니다. 게더링 큐레이션 노출 여부를 설정합니다.")
+    @PatchMapping("/{id}/curation")
+    public ResponseEntity<ApiResult<Void>> toggleCuration(
+            @PathVariable UUID id,
+            @Valid @RequestBody GatheringCurationRequest request
+    ) {
+        adminGatheringService.toggleCuration(id, request);
+        return ResponseEntity.ok(ApiResult.success("큐레이션 설정이 변경되었습니다.", null));
+    }
+
+    @Operation(summary = "큐레이션 순서 변경", description = "관리자 권한이 필요합니다. gatheringIds 순서대로 노출 순위를 설정합니다.")
+    @PutMapping("/curated/order")
+    public ResponseEntity<ApiResult<Void>> reorderCurated(
+            @Valid @RequestBody GatheringCurationOrderRequest request
+    ) {
+        adminGatheringService.reorderCurated(request);
+        return ResponseEntity.ok(ApiResult.success("큐레이션 순서가 변경되었습니다.", null));
     }
 }

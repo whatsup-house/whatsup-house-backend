@@ -31,4 +31,9 @@ public interface GatheringRepository extends JpaRepository<Gathering, UUID> {
 
     @EntityGraph(attributePaths = "location")
     List<Gathering> findByEventDateBetweenAndStatusAndDeletedAtIsNull(LocalDate from, LocalDate to, GatheringStatus status);
+
+    @EntityGraph(attributePaths = "location")
+    List<Gathering> findByIsCuratedTrueAndDeletedAtIsNullOrderByCuratedRankAsc();
+
+    List<Gathering> findByIdInAndDeletedAtIsNull(List<UUID> ids);
 }

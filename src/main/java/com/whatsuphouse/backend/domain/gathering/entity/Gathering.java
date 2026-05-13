@@ -54,6 +54,12 @@ public class Gathering extends BaseEntity {
     @Column(name = "thumbnail_url", length = 500)
     private String thumbnailUrl;
 
+    @Column(name = "is_curated", nullable = false)
+    private boolean isCurated = false;
+
+    @Column(name = "curated_rank", nullable = false)
+    private int curatedRank = 0;
+
     @Builder
     public Gathering(String title, String description, Location location, LocalDate eventDate,
                      LocalTime startTime, LocalTime endTime, Integer price, int maxAttendees, String thumbnailUrl) {
@@ -71,6 +77,14 @@ public class Gathering extends BaseEntity {
 
     public void changeStatus(GatheringStatus status) {
         this.status = status;
+    }
+
+    public void updateCuration(boolean isCurated) {
+        this.isCurated = isCurated;
+    }
+
+    public void updateCuratedRank(int rank) {
+        this.curatedRank = rank;
     }
 
     public void update(String title, String description, Location location, LocalDate eventDate,

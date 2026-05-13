@@ -1,5 +1,8 @@
 spring:
   datasource:
+    url: jdbc:postgresql://localhost:5432/whatsup
+    username: whatsup
+    password: whatsup
     hikari:
       maximum-pool-size: 2
       minimum-idle: 1
@@ -10,7 +13,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
 
   flyway:
     enabled: false

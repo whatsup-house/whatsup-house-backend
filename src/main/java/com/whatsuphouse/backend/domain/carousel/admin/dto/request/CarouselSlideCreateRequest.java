@@ -27,8 +27,8 @@ public class CarouselSlideCreateRequest {
 
     @NotBlank
     @Size(max = 500)
-    @Schema(example = "https://cdn.example.com/slide.jpg")
-    private String imageUrl;
+    @Schema(example = "temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg")
+    private String tempPath;
 
     @Schema(example = "3fa85f64-5717-4562-b3fc-2c963f66afa6")
     private UUID gatheringId;

@@ -12,6 +12,7 @@ import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
 import com.whatsuphouse.backend.domain.gathering.repository.GatheringRepository;
 import com.whatsuphouse.backend.global.exception.CustomException;
 import com.whatsuphouse.backend.global.exception.ErrorCode;
+import com.whatsuphouse.backend.global.storage.service.StorageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,9 @@ class AdminCarouselServiceTest {
     @Mock
     private GatheringRepository gatheringRepository;
 
+    @Mock
+    private StorageService storageService;
+
     @InjectMocks
     private AdminCarouselService adminCarouselService;
 
@@ -64,7 +68,7 @@ class AdminCarouselServiceTest {
                 .type(SlideType.STORY)
                 .title("봄 나들이 모임")
                 .content("함께 봄꽃 구경 가요!")
-                .imageUrl("https://cdn.example.com/slide.jpg")
+                .imageUrl("temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg")
                 .sortOrder(0)
                 .isActive(false)
                 .build();
@@ -97,11 +101,12 @@ class AdminCarouselServiceTest {
         CarouselSlideCreateRequest request = new CarouselSlideCreateRequest();
         ReflectionTestUtils.setField(request, "type", SlideType.GATHERING);
         ReflectionTestUtils.setField(request, "title", "5월 소풍 모임");
-        ReflectionTestUtils.setField(request, "imageUrl", "https://cdn.example.com/slide.jpg");
+        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg");
         ReflectionTestUtils.setField(request, "gatheringId", gatheringId);
 
         given(gatheringRepository.findByIdAndDeletedAtIsNull(gatheringId)).willReturn(Optional.of(gathering));
         given(carouselSlideRepository.findMaxSortOrder()).willReturn(Optional.of(2));
+        given(storageService.move(any(), any())).willReturn("https://cdn.example.com/slide.jpg");
         given(carouselSlideRepository.save(any())).willAnswer(inv -> inv.getArgument(0));
 
         // when
@@ -121,9 +126,10 @@ class AdminCarouselServiceTest {
         ReflectionTestUtils.setField(request, "type", SlideType.STORY);
         ReflectionTestUtils.setField(request, "title", "봄 나들이 모임");
         ReflectionTestUtils.setField(request, "content", "함께 봄꽃 구경 가요!");
-        ReflectionTestUtils.setField(request, "imageUrl", "https://cdn.example.com/slide.jpg");
+        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg");
 
         given(carouselSlideRepository.findMaxSortOrder()).willReturn(Optional.empty());
+        given(storageService.move(any(), any())).willReturn("https://cdn.example.com/slide.jpg");
         given(carouselSlideRepository.save(any())).willAnswer(inv -> inv.getArgument(0));
 
         // when
@@ -141,9 +147,10 @@ class AdminCarouselServiceTest {
         CarouselSlideCreateRequest request = new CarouselSlideCreateRequest();
         ReflectionTestUtils.setField(request, "type", SlideType.CALENDAR);
         ReflectionTestUtils.setField(request, "title", "5월 일정");
-        ReflectionTestUtils.setField(request, "imageUrl", "https://cdn.example.com/calendar.jpg");
+        ReflectionTestUtils.setField(request, "tempPath", "https://cdn.example.com/calendar.jpg");
 
         given(carouselSlideRepository.findMaxSortOrder()).willReturn(Optional.empty());
+        given(storageService.move(any(), any())).willReturn("https://cdn.example.com/slide.jpg");
         given(carouselSlideRepository.save(any())).willAnswer(inv -> inv.getArgument(0));
 
         // when
@@ -161,7 +168,7 @@ class AdminCarouselServiceTest {
         CarouselSlideCreateRequest request = new CarouselSlideCreateRequest();
         ReflectionTestUtils.setField(request, "type", SlideType.GATHERING);
         ReflectionTestUtils.setField(request, "title", "5월 소풍 모임");
-        ReflectionTestUtils.setField(request, "imageUrl", "https://cdn.example.com/slide.jpg");
+        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg");
 
         // when & then
         assertThatThrownBy(() -> adminCarouselService.createSlide(request))
@@ -176,7 +183,7 @@ class AdminCarouselServiceTest {
         CarouselSlideCreateRequest request = new CarouselSlideCreateRequest();
         ReflectionTestUtils.setField(request, "type", SlideType.STORY);
         ReflectionTestUtils.setField(request, "title", "봄 나들이 모임");
-        ReflectionTestUtils.setField(request, "imageUrl", "https://cdn.example.com/slide.jpg");
+        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg");
 
         // when & then
         assertThatThrownBy(() -> adminCarouselService.createSlide(request))
@@ -191,7 +198,7 @@ class AdminCarouselServiceTest {
         CarouselSlideCreateRequest request = new CarouselSlideCreateRequest();
         ReflectionTestUtils.setField(request, "type", SlideType.GATHERING);
         ReflectionTestUtils.setField(request, "title", "5월 소풍 모임");
-        ReflectionTestUtils.setField(request, "imageUrl", "https://cdn.example.com/slide.jpg");
+        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg");
         ReflectionTestUtils.setField(request, "gatheringId", gatheringId);
 
         given(gatheringRepository.findByIdAndDeletedAtIsNull(gatheringId)).willReturn(Optional.empty());
@@ -210,9 +217,10 @@ class AdminCarouselServiceTest {
         ReflectionTestUtils.setField(request, "type", SlideType.STORY);
         ReflectionTestUtils.setField(request, "title", "봄 나들이 모임");
         ReflectionTestUtils.setField(request, "content", "함께 봄꽃 구경 가요!");
-        ReflectionTestUtils.setField(request, "imageUrl", "https://cdn.example.com/slide.jpg");
+        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg");
 
         given(carouselSlideRepository.findMaxSortOrder()).willReturn(Optional.of(2));
+        given(storageService.move(any(), any())).willReturn("https://cdn.example.com/slide.jpg");
         given(carouselSlideRepository.save(any())).willAnswer(inv -> inv.getArgument(0));
 
         // when
@@ -230,9 +238,10 @@ class AdminCarouselServiceTest {
         ReflectionTestUtils.setField(request, "type", SlideType.STORY);
         ReflectionTestUtils.setField(request, "title", "봄 나들이 모임");
         ReflectionTestUtils.setField(request, "content", "함께 봄꽃 구경 가요!");
-        ReflectionTestUtils.setField(request, "imageUrl", "https://cdn.example.com/slide.jpg");
+        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg");
 
         given(carouselSlideRepository.findMaxSortOrder()).willReturn(Optional.empty());
+        given(storageService.move(any(), any())).willReturn("https://cdn.example.com/slide.jpg");
         given(carouselSlideRepository.save(any())).willAnswer(inv -> inv.getArgument(0));
 
         // when
@@ -250,11 +259,12 @@ class AdminCarouselServiceTest {
         ReflectionTestUtils.setField(request, "type", SlideType.GATHERING);
         ReflectionTestUtils.setField(request, "title", "5월 소풍 모임");
         ReflectionTestUtils.setField(request, "content", "이 값은 무시되어야 함");
-        ReflectionTestUtils.setField(request, "imageUrl", "https://cdn.example.com/slide.jpg");
+        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440000.jpg");
         ReflectionTestUtils.setField(request, "gatheringId", gatheringId);
 
         given(gatheringRepository.findByIdAndDeletedAtIsNull(gatheringId)).willReturn(Optional.of(gathering));
         given(carouselSlideRepository.findMaxSortOrder()).willReturn(Optional.empty());
+        given(storageService.move(any(), any())).willReturn("https://cdn.example.com/slide.jpg");
         given(carouselSlideRepository.save(any())).willAnswer(inv -> inv.getArgument(0));
 
         // when
@@ -274,9 +284,10 @@ class AdminCarouselServiceTest {
         ReflectionTestUtils.setField(request, "type", SlideType.STORY);
         ReflectionTestUtils.setField(request, "title", "수정된 제목");
         ReflectionTestUtils.setField(request, "content", "수정된 내용");
-        ReflectionTestUtils.setField(request, "imageUrl", "https://cdn.example.com/updated.jpg");
+        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440001.jpg");
 
         given(carouselSlideRepository.findByIdAndDeletedAtIsNull(slideId)).willReturn(Optional.of(slide));
+        given(storageService.move(any(), any())).willReturn("https://cdn.example.com/updated.jpg");
 
         // when
         AdminCarouselSlideResponse result = adminCarouselService.updateSlide(slideId, request);
@@ -294,7 +305,7 @@ class AdminCarouselServiceTest {
         ReflectionTestUtils.setField(request, "type", SlideType.STORY);
         ReflectionTestUtils.setField(request, "title", "수정된 제목");
         ReflectionTestUtils.setField(request, "content", "수정된 내용");
-        ReflectionTestUtils.setField(request, "imageUrl", "https://cdn.example.com/updated.jpg");
+        ReflectionTestUtils.setField(request, "tempPath", "temp/carousel/550e8400-e29b-41d4-a716-446655440001.jpg");
 
         given(carouselSlideRepository.findByIdAndDeletedAtIsNull(slideId)).willReturn(Optional.empty());
 

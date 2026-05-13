@@ -1,5 +1,6 @@
 package com.whatsuphouse.backend.domain.gathering.client.service;
 
+import com.whatsuphouse.backend.domain.gathering.client.dto.response.CuratedGatheringResponse;
 import com.whatsuphouse.backend.domain.gathering.common.dto.response.GatheringDetailResponse;
 import com.whatsuphouse.backend.domain.gathering.common.dto.response.GatheringResponse;
 import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
@@ -37,6 +38,11 @@ public class GatheringService {
         }
         return gatheringRepository.findByDeletedAtIsNull()
                 .stream().map(GatheringResponse::from).toList();
+    }
+
+    public List<CuratedGatheringResponse> listCuratedGatherings() {
+        return gatheringRepository.findByIsCuratedTrueAndDeletedAtIsNullOrderByCuratedRankAsc()
+                .stream().map(CuratedGatheringResponse::from).toList();
     }
 
     public GatheringDetailResponse getGathering(UUID id) {

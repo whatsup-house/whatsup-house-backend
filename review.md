@@ -12,7 +12,7 @@
 |------|-----|------|
 | 코드 라인 수 | 2,156 | - |
 | 커버리지 | 63.2% | - |
-| 버그 | 1 | B |
+| 버그 | ~~1~~ 0 | ~~B~~ A |
 | 취약점 | 0 | A |
 | 코드 스멜 | 29 | A |
 | 중복 코드 | 0.0% | - |
@@ -22,11 +22,11 @@
 
 ## CRITICAL — 즉시 수정 필요
 
-### 1. `@Transactional` 메서드를 `this`로 직접 호출 (버그)
-- **파일**: `ApplicationService.java:93`
+### 1. ~~`@Transactional` 메서드를 `this`로 직접 호출 (버그)~~ ✅ 수정 완료
+- **파일**: `ApplicationService.java`
 - **규칙**: `java:S6809`
-- **문제**: `this.method()` 형태로 `@Transactional` 메서드를 호출하면 Spring 프록시가 우회되어 트랜잭션이 실제로 적용되지 않음.
-- **수정**: 자기 자신을 `@Autowired`로 주입하거나, 해당 로직을 별도 서비스로 분리.
+- **수정 내용**: `apply()` 로직을 `private applyInternal()`로 추출. `apply()`와 `applyAsGuest()` 각각 독립적으로 프록시를 통해 `@Transactional` 적용 후 `applyInternal()` 호출.
+- **커밋**: `fix: ApplicationService @Transactional self-call 프록시 우회 버그 수정 (KAN-S6809)`
 
 ### 2. 문자열 리터럴 중복 — `SupabaseStorageService.java`
 - **파일**: `SupabaseStorageService.java:49`
@@ -90,7 +90,7 @@
 
 | 우선순위 | 항목 | 담당 |
 |---------|------|------|
-| P0 | `ApplicationService.java:93` — 트랜잭션 우회 버그 수정 | - |
+| ~~P0~~ | ~~`ApplicationService.java:93` — 트랜잭션 우회 버그 수정~~ | ✅ 완료 |
 | P1 | `SupabaseStorageService`, `AuthController` 문자열 상수화 | - |
 | P2 | 테스트 코드 미사용 변수 및 빈 statement 정리 | - |
 | P3 | Assertion 스타일 통일 (`isZero`, `contains`) | - |

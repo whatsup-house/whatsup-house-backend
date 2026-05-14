@@ -41,6 +41,7 @@ public class SecurityConfig {
         "/api/users/check-email",
         "/api/home/carousel",
         "/api/home/curated",
+        "/api/home/reviews",
         "/api/reviews"
     };
 

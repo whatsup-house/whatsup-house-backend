@@ -4,6 +4,7 @@ import com.whatsuphouse.backend.domain.application.entity.Application;
 import com.whatsuphouse.backend.domain.application.enums.ApplicationStatus;
 import com.whatsuphouse.backend.domain.application.repository.ApplicationRepository;
 import com.whatsuphouse.backend.domain.review.client.dto.request.ReviewCreateRequest;
+import com.whatsuphouse.backend.domain.review.client.dto.response.HomeReviewResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewDeleteResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewLikeResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewPageResponse;
@@ -119,6 +120,15 @@ public class ReviewService {
         Pageable pageable = PageRequest.of(page, size, toSort(sort));
         Page<Review> reviewPage = reviewRepository.findByDeletedAtIsNull(pageable);
         return toReviewPageResponse(reviewPage, pageable);
+    }
+
+    public List<HomeReviewResponse> listHomeReviews() {
+        List<Review> reviews = reviewRepository.findByIsHomeFeaturedTrueAndDeletedAtIsNullOrderByHomeDisplayOrderAscCreatedAtDesc();
+        Map<UUID, List<ReviewImage>> imageMap = findImageMap(reviews);
+
+        return reviews.stream()
+                .map(review -> HomeReviewResponse.of(review, imageMap.getOrDefault(review.getId(), List.of())))
+                .toList();
     }
 
     private ReviewPageResponse toReviewPageResponse(Page<Review> reviewPage, Pageable pageable) {

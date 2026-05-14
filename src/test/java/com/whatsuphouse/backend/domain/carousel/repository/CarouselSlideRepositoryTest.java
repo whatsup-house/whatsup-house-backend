@@ -117,7 +117,7 @@ class CarouselSlideRepositoryTest {
         Optional<Integer> result = carouselSlideRepository.findMaxSortOrder();
 
         assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(5);
+        assertThat(result).contains(5);
     }
 
     @Test

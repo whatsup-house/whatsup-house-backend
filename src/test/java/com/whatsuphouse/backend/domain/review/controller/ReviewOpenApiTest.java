@@ -56,6 +56,17 @@ class ReviewOpenApiTest {
     }
 
     @Test
+    @DisplayName("Swagger 문서에 내 리뷰 삭제 API 스펙이 노출된다")
+    void reviewDeleteApi_isExposedInOpenApiDocs() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/api-docs", String.class);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).contains("\"/api/reviews/{reviewId}\"");
+        assertThat(response.getBody()).contains("\"delete\"");
+        assertThat(response.getBody()).contains("reviewId");
+    }
+
+    @Test
     @DisplayName("Swagger 문서에 게더링별 리뷰 목록 조회 API 스펙이 노출된다")
     void gatheringReviewListApi_isExposedInOpenApiDocs() {
         ResponseEntity<String> response = restTemplate.getForEntity("/api-docs", String.class);

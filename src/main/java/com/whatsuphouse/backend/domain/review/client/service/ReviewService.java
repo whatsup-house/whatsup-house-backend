@@ -4,6 +4,7 @@ import com.whatsuphouse.backend.domain.application.entity.Application;
 import com.whatsuphouse.backend.domain.application.enums.ApplicationStatus;
 import com.whatsuphouse.backend.domain.application.repository.ApplicationRepository;
 import com.whatsuphouse.backend.domain.review.client.dto.request.ReviewCreateRequest;
+import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewDeleteResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewLikeResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewPageResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewResponse;
@@ -86,6 +87,22 @@ public class ReviewService {
         return reviewLikeRepository.findByReviewIdAndUserId(reviewId, userId)
                 .map(reviewLike -> unlike(review, reviewLike))
                 .orElseGet(() -> like(review, user));
+    }
+
+    @Transactional
+    public ReviewDeleteResponse deleteReview(UUID reviewId, UUID userId) {
+        Review review = reviewRepository.findByIdAndDeletedAtIsNull(reviewId)
+                .orElseThrow(() -> new CustomException(ErrorCode.REVIEW_NOT_FOUND));
+
+        if (!review.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.REVIEW_APPLICATION_FORBIDDEN);
+        }
+
+        review.delete();
+        reviewImageRepository.findByReviewIdAndDeletedAtIsNullOrderByDisplayOrderAsc(reviewId)
+                .forEach(ReviewImage::delete);
+
+        return ReviewDeleteResponse.of(review.getId());
     }
 
     public ReviewPageResponse getGatheringReviews(UUID gatheringId, ReviewSort sort, int page, int size) {

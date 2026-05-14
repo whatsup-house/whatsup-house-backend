@@ -253,6 +253,39 @@ class ReviewServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.GATHERING_NOT_FOUND);
     }
 
+    @Test
+    @DisplayName("전체 리뷰 목록을 최신순으로 조회")
+    void getReviews_latest_success() {
+        Review review = buildReview(UUID.randomUUID(), "전체 최신 리뷰입니다.");
+
+        given(reviewRepository.findByDeletedAtIsNull(any(Pageable.class)))
+                .willReturn(new PageImpl<>(List.of(review)));
+        given(reviewImageRepository.findByReviewIdInAndDeletedAtIsNullOrderByDisplayOrderAsc(List.of(review.getId())))
+                .willReturn(List.of());
+
+        ReviewPageResponse response = reviewService.getReviews(ReviewSort.LATEST, 0, 10);
+
+        assertThat(response.getContent()).hasSize(1);
+        assertThat(response.getContent().get(0).getReviewContent()).isEqualTo("전체 최신 리뷰입니다.");
+        assertThat(response.getPage()).isZero();
+    }
+
+    @Test
+    @DisplayName("전체 리뷰 목록을 추천순으로 조회")
+    void getReviews_likes_success() {
+        Review review = buildReview(UUID.randomUUID(), "전체 추천순 리뷰입니다.");
+
+        given(reviewRepository.findByDeletedAtIsNull(any(Pageable.class)))
+                .willReturn(new PageImpl<>(List.of(review)));
+        given(reviewImageRepository.findByReviewIdInAndDeletedAtIsNullOrderByDisplayOrderAsc(List.of(review.getId())))
+                .willReturn(List.of());
+
+        ReviewPageResponse response = reviewService.getReviews(ReviewSort.LIKES, 0, 10);
+
+        assertThat(response.getContent()).hasSize(1);
+        assertThat(response.getContent().get(0).getReviewContent()).isEqualTo("전체 추천순 리뷰입니다.");
+    }
+
     private Review buildReview(UUID reviewId, String content) {
         Review review = Review.builder()
                 .user(user)

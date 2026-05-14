@@ -75,6 +75,16 @@ public class ReviewService {
 
         Pageable pageable = PageRequest.of(page, size, toSort(sort));
         Page<Review> reviewPage = reviewRepository.findByGatheringIdAndDeletedAtIsNull(gatheringId, pageable);
+        return toReviewPageResponse(reviewPage, pageable);
+    }
+
+    public ReviewPageResponse getReviews(ReviewSort sort, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, toSort(sort));
+        Page<Review> reviewPage = reviewRepository.findByDeletedAtIsNull(pageable);
+        return toReviewPageResponse(reviewPage, pageable);
+    }
+
+    private ReviewPageResponse toReviewPageResponse(Page<Review> reviewPage, Pageable pageable) {
         Map<UUID, List<ReviewImage>> imageMap = findImageMap(reviewPage.getContent());
 
         List<ReviewResponse> content = reviewPage.getContent().stream()

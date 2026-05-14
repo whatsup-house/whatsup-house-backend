@@ -21,6 +21,8 @@ public class SupabaseStorageService implements StorageService{
     private static final Logger log = LoggerFactory.getLogger(SupabaseStorageService.class);
 
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
+    private static final String AUTHORIZATION = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
 
     @Value("${supabase.url}")
     private String supabaseUrl;
@@ -46,7 +48,7 @@ public class SupabaseStorageService implements StorageService{
         try {
             restClient.put()
                     .uri(supabaseUrl + "/storage/v1/object/" + bucket + "/" + tempPath)
-                    .header("Authorization", "Bearer " + supabaseKey)
+                    .header(AUTHORIZATION, BEARER_PREFIX + supabaseKey)
                     .contentType(MediaType.parseMediaType(file.getContentType()))
                     .body(file.getBytes())
                     .retrieve()
@@ -70,7 +72,7 @@ public class SupabaseStorageService implements StorageService{
         try {
             restClient.post()
                     .uri(supabaseUrl + "/storage/v1/object/move")
-                    .header("Authorization", "Bearer " + supabaseKey)
+                    .header(AUTHORIZATION, BEARER_PREFIX + supabaseKey)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(Map.of(
                             "bucketId", bucket,
@@ -97,7 +99,7 @@ public class SupabaseStorageService implements StorageService{
         try {
             restClient.delete()
                     .uri(supabaseUrl + "/storage/v1/object/" + bucket + "/" + path)
-                    .header("Authorization", "Bearer " + supabaseKey)
+                    .header(AUTHORIZATION, BEARER_PREFIX + supabaseKey)
                     .retrieve()
                     .toBodilessEntity();
         } catch (Exception e) {

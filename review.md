@@ -28,17 +28,17 @@
 - **수정 내용**: `apply()` 로직을 `private applyInternal()`로 추출. `apply()`와 `applyAsGuest()` 각각 독립적으로 프록시를 통해 `@Transactional` 적용 후 `applyInternal()` 호출.
 - **커밋**: `fix: ApplicationService @Transactional self-call 프록시 우회 버그 수정 (KAN-S6809)`
 
-### 2. 문자열 리터럴 중복 — `SupabaseStorageService.java`
-- **파일**: `SupabaseStorageService.java:49`
+### 2. ~~문자열 리터럴 중복 — `SupabaseStorageService.java`~~ ✅ 수정 완료
+- **파일**: `SupabaseStorageService.java`
 - **규칙**: `java:S1192`
-- `"Authorization"` 문자열이 3회 반복됨 → `private static final String AUTHORIZATION = "Authorization";`으로 상수화
-- `"Bearer "` 문자열이 3회 반복됨 → `private static final String BEARER_PREFIX = "Bearer ";`으로 상수화
+- `AUTHORIZATION = "Authorization"`, `BEARER_PREFIX = "Bearer "` 상수 추가 후 3개 호출부 모두 교체
+- **커밋**: `refactor: SupabaseStorageService, AuthController 중복 문자열 상수화`
 
-### 3. 문자열 리터럴 중복 — `AuthController.java`
-- **파일**: `AuthController.java:47-48`
+### 3. ~~문자열 리터럴 중복 — `AuthController.java`~~ ✅ 수정 완료
+- **파일**: `AuthController.java`
 - **규칙**: `java:S1192`
-- `"accessToken"` 문자열이 3회 반복됨 → 상수화
-- `"refreshToken"` 문자열이 4회 반복됨 → 상수화
+- `ACCESS_TOKEN = "accessToken"`, `REFRESH_TOKEN = "refreshToken"` 상수 추가 후 전체 호출부 교체
+- **커밋**: 위와 동일
 
 ---
 
@@ -91,7 +91,7 @@
 | 우선순위 | 항목 | 담당 |
 |---------|------|------|
 | ~~P0~~ | ~~`ApplicationService.java:93` — 트랜잭션 우회 버그 수정~~ | ✅ 완료 |
-| P1 | `SupabaseStorageService`, `AuthController` 문자열 상수화 | - |
+| ~~P1~~ | ~~`SupabaseStorageService`, `AuthController` 문자열 상수화~~ | ✅ 완료 |
 | P2 | 테스트 코드 미사용 변수 및 빈 statement 정리 | - |
 | P3 | Assertion 스타일 통일 (`isZero`, `contains`) | - |
 | P3 | 불필요한 import 제거 | - |

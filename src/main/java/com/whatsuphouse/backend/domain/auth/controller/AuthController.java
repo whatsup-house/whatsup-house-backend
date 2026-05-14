@@ -29,6 +29,9 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class AuthController {
 
+    private static final String ACCESS_TOKEN = "accessToken";
+    private static final String REFRESH_TOKEN = "refreshToken";
+
     private final AuthService authService;
 
     @Operation(summary = "회원가입", description = "이메일, 비밀번호, 닉네임 등 기본 정보로 회원가입한다.")
@@ -44,8 +47,8 @@ public class AuthController {
     public ResponseEntity<ApiResult<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         LoginResponse response = authService.login(request);
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, buildCookie("accessToken", response.getAccessToken()).toString())
-                .header(HttpHeaders.SET_COOKIE, buildCookie("refreshToken", response.getRefreshToken()).toString())
+                .header(HttpHeaders.SET_COOKIE, buildCookie(ACCESS_TOKEN, response.getAccessToken()).toString())
+                .header(HttpHeaders.SET_COOKIE, buildCookie(REFRESH_TOKEN, response.getRefreshToken()).toString())
                 .body(ApiResult.success("로그인되었습니다.", response));
     }
 
@@ -54,19 +57,19 @@ public class AuthController {
     public ResponseEntity<ApiResult<Void>> logout(@AuthenticationPrincipal UserPrincipal principal) {
         authService.logout(principal.getUserId());
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, expireCookie("accessToken").toString())
-                .header(HttpHeaders.SET_COOKIE, expireCookie("refreshToken").toString())
+                .header(HttpHeaders.SET_COOKIE, expireCookie(ACCESS_TOKEN).toString())
+                .header(HttpHeaders.SET_COOKIE, expireCookie(REFRESH_TOKEN).toString())
                 .body(ApiResult.success("로그아웃되었습니다.", null));
     }
 
     @Operation(summary = "토큰 갱신", description = "refreshToken 쿠키로 새 accessToken, refreshToken을 HttpOnly 쿠키로 재발급한다.")
     @PostMapping("/refresh")
     public ResponseEntity<ApiResult<Void>> refresh(HttpServletRequest request) {
-        String refreshToken = extractCookie(request, "refreshToken");
+        String refreshToken = extractCookie(request, REFRESH_TOKEN);
         TokenRefreshResponse response = authService.refresh(refreshToken);
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, buildCookie("accessToken", response.getAccessToken()).toString())
-                .header(HttpHeaders.SET_COOKIE, buildCookie("refreshToken", response.getRefreshToken()).toString())
+                .header(HttpHeaders.SET_COOKIE, buildCookie(ACCESS_TOKEN, response.getAccessToken()).toString())
+                .header(HttpHeaders.SET_COOKIE, buildCookie(REFRESH_TOKEN, response.getRefreshToken()).toString())
                 .body(ApiResult.success("토큰이 갱신되었습니다.", null));
     }
 

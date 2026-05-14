@@ -1,6 +1,7 @@
 package com.whatsuphouse.backend.domain.review.client.controller;
 
 import com.whatsuphouse.backend.domain.review.client.dto.request.ReviewCreateRequest;
+import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewDeleteResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewLikeResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewPageResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewResponse;
@@ -46,6 +47,16 @@ public class ReviewController {
     ) {
         return ResponseEntity.ok(ApiResult.success(
                 reviewService.toggleLike(reviewId, principal.getUserId())));
+    }
+
+    @Operation(summary = "내 리뷰 삭제", description = "로그인한 회원이 본인이 작성한 리뷰를 삭제합니다.")
+    @DeleteMapping("/api/reviews/{reviewId}")
+    public ResponseEntity<ApiResult<ReviewDeleteResponse>> deleteReview(
+            @PathVariable UUID reviewId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        return ResponseEntity.ok(ApiResult.success("리뷰가 삭제되었습니다.",
+                reviewService.deleteReview(reviewId, principal.getUserId())));
     }
 
     @Operation(summary = "전체 리뷰 목록 조회", description = "전체 리뷰를 최신순 또는 추천순으로 조회합니다.")

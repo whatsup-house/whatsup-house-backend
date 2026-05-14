@@ -6,6 +6,7 @@ import com.whatsuphouse.backend.domain.application.repository.ApplicationReposit
 import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
 import com.whatsuphouse.backend.domain.gathering.repository.GatheringRepository;
 import com.whatsuphouse.backend.domain.review.client.dto.request.ReviewCreateRequest;
+import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewDeleteResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewLikeResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewPageResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewResponse;
@@ -359,6 +360,53 @@ class ReviewServiceTest {
         assertThatThrownBy(() -> reviewService.toggleLike(reviewId, userId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("본인 리뷰 삭제 성공")
+    void deleteReview_success() {
+        UUID reviewId = UUID.randomUUID();
+        Review review = buildReview(reviewId, "삭제할 리뷰입니다.");
+        ReviewImage image = ReviewImage.builder()
+                .review(review)
+                .imageUrl("https://cdn.example.com/review/image.jpg")
+                .displayOrder(0)
+                .build();
+
+        given(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).willReturn(Optional.of(review));
+        given(reviewImageRepository.findByReviewIdAndDeletedAtIsNullOrderByDisplayOrderAsc(reviewId))
+                .willReturn(List.of(image));
+
+        ReviewDeleteResponse response = reviewService.deleteReview(reviewId, userId);
+
+        assertThat(response.isDeleted()).isTrue();
+        assertThat(response.getReviewId()).isEqualTo(reviewId);
+        assertThat(review.getDeletedAt()).isNotNull();
+        assertThat(image.getDeletedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 리뷰 삭제 시 예외 발생")
+    void deleteReview_reviewNotFound_throwsException() {
+        UUID reviewId = UUID.randomUUID();
+        given(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> reviewService.deleteReview(reviewId, userId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.REVIEW_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("본인 리뷰가 아니면 삭제할 수 없다")
+    void deleteReview_forbidden_throwsException() {
+        UUID reviewId = UUID.randomUUID();
+        Review review = buildReview(reviewId, "다른 사용자의 리뷰입니다.");
+
+        given(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).willReturn(Optional.of(review));
+
+        assertThatThrownBy(() -> reviewService.deleteReview(reviewId, UUID.randomUUID()))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.REVIEW_APPLICATION_FORBIDDEN);
     }
 
     private Review buildReview(UUID reviewId, String content) {

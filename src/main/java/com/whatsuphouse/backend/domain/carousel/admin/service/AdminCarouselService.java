@@ -113,7 +113,7 @@ public class AdminCarouselService {
         CarouselSlide slide = carouselSlideRepository.findByIdAndDeletedAtIsNull(slideId)
                 .orElseThrow(() -> new CustomException(ErrorCode.SLIDE_NOT_FOUND));
 
-        if (request.getIsActive()) {
+        if (Boolean.TRUE.equals(request.getIsActive())) {
             slide.activate();
         } else {
             slide.deactivate();

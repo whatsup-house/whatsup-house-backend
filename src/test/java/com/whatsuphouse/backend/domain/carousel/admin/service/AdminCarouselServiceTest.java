@@ -237,7 +237,7 @@ class AdminCarouselServiceTest {
         AdminCarouselSlideResponse result = adminCarouselService.createSlide(request);
 
         // then
-        assertThat(result.getSortOrder()).isEqualTo(0);
+        assertThat(result.getSortOrder()).isZero();
     }
 
     @Test
@@ -406,7 +406,7 @@ class AdminCarouselServiceTest {
         adminCarouselService.reorderSlides(request);
 
         // then
-        assertThat(slide1.getSortOrder()).isEqualTo(0);
+        assertThat(slide1.getSortOrder()).isZero();
         assertThat(slide2.getSortOrder()).isEqualTo(1);
         assertThat(slide3.getSortOrder()).isEqualTo(2);
     }

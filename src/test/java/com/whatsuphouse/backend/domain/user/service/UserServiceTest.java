@@ -62,7 +62,7 @@ class UserServiceTest {
 
         assertThat(response.getEmail()).isEqualTo("test@example.com");
         assertThat(response.getNickname()).isEqualTo("gildong");
-        assertThat(response.getMileage()).isEqualTo(0);
+        assertThat(response.getMileage()).isZero();
     }
 
     @Test
@@ -87,7 +87,7 @@ class UserServiceTest {
         ProfileResponse response = userService.updateProfile(userId, request);
 
         assertThat(response.getNickname()).isEqualTo("newgildong");
-        assertThat(response.getMileage()).isEqualTo(0);
+        assertThat(response.getMileage()).isZero();
     }
 
     @Test

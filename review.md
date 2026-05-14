@@ -53,37 +53,28 @@
 
 ---
 
-## MINOR — 코드 품질 개선
+## MINOR — 코드 품질 개선 ✅ 전체 수정 완료
 
-### 테스트 Assertion 개선 (S5838)
-아래 파일에서 `.isEqualTo(0)` 대신 `.isZero()` 사용 권장.
+### 테스트 Assertion 개선 (S5838) ✅
+- `.isEqualTo(0)` → `.isZero()` 적용 파일: `AdminCarouselServiceTest`, `CarouselSlideRepositoryTest`, `AuthServiceTest`, `AdminUserServiceTest`, `UserServiceTest`, `AdminUserRepositoryTest`, `AdminGatheringServiceTest`
+- `CarouselSlideRepositoryTest.java` → `assertThat(result.get()).isEqualTo(5)` → `assertThat(result).contains(5)` (Optional 직접 검증)
+- `AdminUserRepositoryTest.java` → `doesNotContain` 전에 `assertThat(result.getContent()).isNotEmpty()` 추가 (S5841)
 
-| 파일 | 라인 |
-|------|------|
-| `AdminCarouselServiceTest.java` | 240, 409 |
-| `CarouselSlideRepositoryTest.java` | 84 |
-| `AuthServiceTest.java` | 137 |
-| `AdminUserServiceTest.java` | 64, 78, 83 |
-| `UserServiceTest.java` | 65, 90 |
-| `AdminUserRepositoryTest.java` | 115 |
-| `AdminGatheringServiceTest.java` | 108 |
+### 불필요한 import 제거 (S1128) ✅
+- `AdminUserRepositoryTest.java` — 같은 패키지 `UserApplicationStatsProjection` import 제거
+- `AdminApplicationServiceTest.java` — 미사용 `ArgumentMatchers.any`, `ArgumentMatchers.eq` import 제거
 
-- `CarouselSlideRepositoryTest.java:119` → `.contains()` 사용 권장
-- `AdminUserRepositoryTest.java:147` → List 비어있는지 먼저 확인 후 assertion (S5841)
+### 미사용 로컬 변수 제거 (S1481) ✅
+- `ApplicationRepositoryTest.java` — 미사용 변수 `app1` 제거 (MAJOR에서 수정 완료)
+- `AdminApplicationServiceTest.java` — 미사용 변수 `id` 제거 (MAJOR에서 수정 완료)
 
-### 불필요한 import 제거 (S1128)
-- `AdminUserRepositoryTest.java:8` — 같은 패키지 클래스 import 불필요
-- `AdminApplicationServiceTest.java:34` — 미사용 `ArgumentMatchers.any` import
+### 기타 ✅
+- `SupabaseStorageService.java` — `PATH_SEPARATOR = "/"` 상수 추가, `tempPath` 조합에 적용 (S1075)
+- `AdminApplicationServiceTest.java` — 빈 statement `;;` → `;` 수정 (S1116)
+- `AdminApplicationServiceTest.java` — Mockito `eq()` 제거, 값 직접 전달로 변경 (S6068)
+- `AdminCarouselService.java` — `request.getIsActive()` → `Boolean.TRUE.equals(request.getIsActive())` (S5411)
 
-### 미사용 로컬 변수 제거 (S1481)
-- `ApplicationRepositoryTest.java:158, 187` — 미사용 변수 `app1`
-- `AdminApplicationServiceTest.java:347` — 미사용 변수 `id`
-
-### 기타
-- `SupabaseStorageService.java:44` — 하드코딩된 path delimiter `/` → `File.separator` 또는 상수 사용 (S1075)
-- `AdminApplicationServiceTest.java:353` — 빈 statement(세미콜론 단독 줄) 제거 (S1116)
-- `AdminApplicationServiceTest.java:261` — Mockito `eq()` 불필요하게 사용 → 값 직접 전달 (S6068)
-- `AdminCarouselService.java:116` — `Boolean` 박싱 타입 대신 원시 `boolean` 사용 (S5411)
+**커밋**: `fix: SonarQube MINOR 이슈 전체 수정`
 
 ---
 
@@ -94,5 +85,5 @@
 | ~~P0~~ | ~~`ApplicationService.java:93` — 트랜잭션 우회 버그 수정~~ | ✅ 완료 |
 | ~~P1~~ | ~~`SupabaseStorageService`, `AuthController` 문자열 상수화~~ | ✅ 완료 |
 | ~~P2~~ | ~~테스트 코드 미사용 변수 및 빈 statement 정리~~ | ✅ 완료 (변수 제거) |
-| P3 | Assertion 스타일 통일 (`isZero`, `contains`) | - |
-| P3 | 불필요한 import 제거 | - |
+| ~~P3~~ | ~~Assertion 스타일 통일 (`isZero`, `contains`)~~ | ✅ 완료 |
+| ~~P3~~ | ~~불필요한 import 제거~~ | ✅ 완료 |

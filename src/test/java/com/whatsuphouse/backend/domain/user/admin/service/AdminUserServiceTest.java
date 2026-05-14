@@ -61,7 +61,7 @@ class AdminUserServiceTest {
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent().get(0).getTotalApplications()).isEqualTo(3L);
         assertThat(result.getContent().get(0).getAttendedCount()).isEqualTo(2L);
-        assertThat(result.getContent().get(0).getMileage()).isEqualTo(0);
+        assertThat(result.getContent().get(0).getMileage()).isZero();
     }
 
     @Test
@@ -75,11 +75,11 @@ class AdminUserServiceTest {
 
         UserPageResponse result = adminUserService.listUsers("gildong", 0, 20);
 
-        assertThat(result.getPage()).isEqualTo(0);
+        assertThat(result.getPage()).isZero();
         assertThat(result.getSize()).isEqualTo(20);
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getNickname()).isEqualTo("gildong");
-        assertThat(result.getContent().get(0).getMileage()).isEqualTo(0);
+        assertThat(result.getContent().get(0).getMileage()).isZero();
     }
 }

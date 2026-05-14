@@ -23,6 +23,7 @@ public class SupabaseStorageService implements StorageService{
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
     private static final String AUTHORIZATION = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
+    private static final String PATH_SEPARATOR = "/";
 
     @Value("${supabase.url}")
     private String supabaseUrl;
@@ -43,7 +44,7 @@ public class SupabaseStorageService implements StorageService{
         }
 
         String fileName = UUID.randomUUID() + "." + extension;
-        String tempPath = "temp/" + folder + "/" + fileName;
+        String tempPath = "temp" + PATH_SEPARATOR + folder + PATH_SEPARATOR + fileName;
 
         try {
             restClient.put()

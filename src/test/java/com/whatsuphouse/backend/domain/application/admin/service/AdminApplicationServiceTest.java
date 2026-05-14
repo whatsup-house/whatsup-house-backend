@@ -31,8 +31,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -258,7 +256,7 @@ void changeStatus_toCancelled_throwsException() {
                 .relatedId(applicationId).build();
 
         given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.of(memberApplication));
-        given(mileageService.rewardAttendance(eq(user), eq(applicationId))).willReturn(history);
+        given(mileageService.rewardAttendance(user, applicationId)).willReturn(history);
         ApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.ATTENDED);
 
         // WHEN
@@ -349,7 +347,7 @@ void changeStatus_toCancelled_throwsException() {
         // WHEN & THEN
         assertThatThrownBy(() -> adminApplicationService.deleteApplication(applicationId))
                 .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CANNOT_DELETE);;
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CANNOT_DELETE);
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────

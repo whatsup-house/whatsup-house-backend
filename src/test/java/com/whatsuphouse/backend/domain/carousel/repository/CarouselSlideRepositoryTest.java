@@ -81,7 +81,7 @@ class CarouselSlideRepositoryTest {
                 carouselSlideRepository.findByIsActiveTrueAndDeletedAtIsNullOrderBySortOrderAscCreatedAtAsc();
 
         assertThat(result).hasSize(3);
-        assertThat(result.get(0).getSortOrder()).isEqualTo(0);
+        assertThat(result.get(0).getSortOrder()).isZero();
         assertThat(result.get(1).getSortOrder()).isEqualTo(1);
         assertThat(result.get(2).getSortOrder()).isEqualTo(2);
     }
@@ -116,7 +116,7 @@ class CarouselSlideRepositoryTest {
         Optional<Integer> result = carouselSlideRepository.findMaxSortOrder();
 
         assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(5);
+        assertThat(result).contains(5);
     }
 
     @Test

@@ -105,7 +105,7 @@ class AdminGatheringServiceTest {
         // then
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getTitle()).isEqualTo("재즈 게더링");
-        assertThat(result.get(0).getApplicantCount()).isEqualTo(0);
+        assertThat(result.get(0).getApplicantCount()).isZero();
     }
 
     @Test

@@ -134,7 +134,7 @@ class AuthServiceTest {
 
         assertThat(response.getAccessToken()).isEqualTo("accessToken");
         assertThat(response.getRefreshToken()).isEqualTo("refreshToken");
-        assertThat(response.getUser().getMileage()).isEqualTo(0);
+        assertThat(response.getUser().getMileage()).isZero();
     }
 
     @Test

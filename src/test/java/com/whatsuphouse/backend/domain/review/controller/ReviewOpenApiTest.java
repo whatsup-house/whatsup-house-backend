@@ -77,6 +77,19 @@ class ReviewOpenApiTest {
     }
 
     @Test
+    @DisplayName("Swagger 문서에 관리자 리뷰 홈 노출 관리 API 스펙이 노출된다")
+    void adminReviewHomeApi_isExposedInOpenApiDocs() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/api-docs", String.class);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(response.getBody()).contains("\"/api/admin/reviews\"");
+        assertThat(response.getBody()).contains("\"/api/admin/reviews/{reviewId}/home-featured\"");
+        assertThat(response.getBody()).contains("\"/api/admin/reviews/home-order\"");
+        assertThat(response.getBody()).contains("isHomeFeatured");
+        assertThat(response.getBody()).contains("homeDisplayOrder");
+    }
+
+    @Test
     @DisplayName("Swagger 문서에 게더링별 리뷰 목록 조회 API 스펙이 노출된다")
     void gatheringReviewListApi_isExposedInOpenApiDocs() {
         ResponseEntity<String> response = restTemplate.getForEntity("/api-docs", String.class);

@@ -6,16 +6,20 @@ import com.whatsuphouse.backend.domain.application.repository.ApplicationReposit
 import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
 import com.whatsuphouse.backend.domain.gathering.repository.GatheringRepository;
 import com.whatsuphouse.backend.domain.review.client.dto.request.ReviewCreateRequest;
+import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewLikeResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewPageResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewResponse;
 import com.whatsuphouse.backend.domain.review.client.service.ReviewService;
 import com.whatsuphouse.backend.domain.review.entity.Review;
 import com.whatsuphouse.backend.domain.review.entity.ReviewImage;
+import com.whatsuphouse.backend.domain.review.entity.ReviewLike;
 import com.whatsuphouse.backend.domain.review.enums.ReviewSort;
 import com.whatsuphouse.backend.domain.review.enums.ReviewType;
 import com.whatsuphouse.backend.domain.review.repository.ReviewImageRepository;
+import com.whatsuphouse.backend.domain.review.repository.ReviewLikeRepository;
 import com.whatsuphouse.backend.domain.review.repository.ReviewRepository;
 import com.whatsuphouse.backend.domain.user.entity.User;
+import com.whatsuphouse.backend.domain.user.repository.UserRepository;
 import com.whatsuphouse.backend.global.common.enums.Gender;
 import com.whatsuphouse.backend.global.exception.CustomException;
 import com.whatsuphouse.backend.global.exception.ErrorCode;
@@ -53,10 +57,16 @@ class ReviewServiceTest {
     private GatheringRepository gatheringRepository;
 
     @Mock
+    private UserRepository userRepository;
+
+    @Mock
     private ReviewRepository reviewRepository;
 
     @Mock
     private ReviewImageRepository reviewImageRepository;
+
+    @Mock
+    private ReviewLikeRepository reviewLikeRepository;
 
     @Mock
     private StorageService storageService;
@@ -284,6 +294,71 @@ class ReviewServiceTest {
 
         assertThat(response.getContent()).hasSize(1);
         assertThat(response.getContent().get(0).getReviewContent()).isEqualTo("전체 추천순 리뷰입니다.");
+    }
+
+    @Test
+    @DisplayName("리뷰를 추천하면 추천 이력이 생성되고 추천 수가 증가한다")
+    void toggleLike_like_success() {
+        UUID reviewId = UUID.randomUUID();
+        Review review = buildReview(reviewId, "추천할 리뷰입니다.");
+
+        given(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).willReturn(Optional.of(review));
+        given(userRepository.findByIdAndDeletedAtIsNull(userId)).willReturn(Optional.of(user));
+        given(reviewLikeRepository.findByReviewIdAndUserId(reviewId, userId)).willReturn(Optional.empty());
+        given(reviewLikeRepository.save(any())).willAnswer(inv -> inv.getArgument(0));
+
+        ReviewLikeResponse response = reviewService.toggleLike(reviewId, userId);
+
+        assertThat(response.isLiked()).isTrue();
+        assertThat(response.getLikeCount()).isEqualTo(1);
+        verify(reviewLikeRepository).save(any(ReviewLike.class));
+    }
+
+    @Test
+    @DisplayName("이미 추천한 리뷰를 다시 요청하면 추천이 취소되고 추천 수가 감소한다")
+    void toggleLike_unlike_success() {
+        UUID reviewId = UUID.randomUUID();
+        Review review = buildReview(reviewId, "추천 취소할 리뷰입니다.");
+        review.increaseLikeCount();
+        ReviewLike reviewLike = ReviewLike.builder()
+                .review(review)
+                .user(user)
+                .build();
+
+        given(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).willReturn(Optional.of(review));
+        given(userRepository.findByIdAndDeletedAtIsNull(userId)).willReturn(Optional.of(user));
+        given(reviewLikeRepository.findByReviewIdAndUserId(reviewId, userId)).willReturn(Optional.of(reviewLike));
+
+        ReviewLikeResponse response = reviewService.toggleLike(reviewId, userId);
+
+        assertThat(response.isLiked()).isFalse();
+        assertThat(response.getLikeCount()).isZero();
+        verify(reviewLikeRepository).delete(reviewLike);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 리뷰 추천 시 예외 발생")
+    void toggleLike_reviewNotFound_throwsException() {
+        UUID reviewId = UUID.randomUUID();
+        given(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> reviewService.toggleLike(reviewId, userId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.REVIEW_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 사용자가 리뷰 추천 시 예외 발생")
+    void toggleLike_userNotFound_throwsException() {
+        UUID reviewId = UUID.randomUUID();
+        Review review = buildReview(reviewId, "추천할 리뷰입니다.");
+
+        given(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).willReturn(Optional.of(review));
+        given(userRepository.findByIdAndDeletedAtIsNull(userId)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> reviewService.toggleLike(reviewId, userId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
     }
 
     private Review buildReview(UUID reviewId, String content) {

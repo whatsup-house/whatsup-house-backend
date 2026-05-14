@@ -344,7 +344,6 @@ void changeStatus_toCancelled_throwsException() {
     void deleteApplication_attended_throwsException() {
         // GIVEN
         given(applicationRepository.findById(applicationId)).willReturn(Optional.of(application));
-        UUID id = applicationId;
         application.attend();
 
         // WHEN & THEN

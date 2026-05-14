@@ -155,7 +155,7 @@ class ApplicationRepositoryTest {
     @DisplayName("게더링 ID 목록으로 status별 신청 수 집계")
     void countByGatheringIdsGroupByStatus_returnsGroupedCount() {
         // GIVEN
-        Application app1 = saveApplication("WH101", gathering, user, null);
+        saveApplication("WH101", gathering, user, null);
         Application app2 = saveApplication("WH102", gathering, null, "01022222222");
         app2.confirm();
         em.flush();
@@ -184,7 +184,7 @@ class ApplicationRepositoryTest {
     @DisplayName("CANCELLED된 신청은 집계에서 제외")
     void countByGatheringIdsGroupByStatus_excludesCancelled() {
         // GIVEN
-        Application app1 = saveApplication("WH201", gathering, user, null);
+        saveApplication("WH201", gathering, user, null);
         Application app2 = saveApplication("WH202", gathering, null, "01033333333");
         app2.cancel();
         em.flush();

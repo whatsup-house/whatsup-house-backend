@@ -44,11 +44,12 @@
 
 ## MAJOR — 우선 처리 권장
 
-### 4. 사용되지 않는 로컬 변수 할당
-- **파일**: `ApplicationRepositoryTest.java:158, 187`  
-  로컬 변수 `app1`에 값을 할당하지만 이후 사용되지 않음 → 변수 제거 또는 코드 의도 재확인
-- **파일**: `AdminApplicationServiceTest.java:347`  
-  로컬 변수 `id`에 값을 할당하지만 이후 사용되지 않음 → 변수 제거
+### 4. ~~사용되지 않는 로컬 변수 할당~~ ✅ 수정 완료
+- **파일**: `ApplicationRepositoryTest.java`
+  `app1` 변수 할당 제거 → `saveApplication()` 반환값 무시로 수정 (158, 187번 라인)
+- **파일**: `AdminApplicationServiceTest.java`
+  미사용 `UUID id = applicationId;` 라인 제거 (347번 라인)
+- **커밋**: `fix: 테스트 코드 미사용 로컬 변수 할당 제거 (S1854, S1481)`
 
 ---
 
@@ -92,6 +93,6 @@
 |---------|------|------|
 | ~~P0~~ | ~~`ApplicationService.java:93` — 트랜잭션 우회 버그 수정~~ | ✅ 완료 |
 | ~~P1~~ | ~~`SupabaseStorageService`, `AuthController` 문자열 상수화~~ | ✅ 완료 |
-| P2 | 테스트 코드 미사용 변수 및 빈 statement 정리 | - |
+| ~~P2~~ | ~~테스트 코드 미사용 변수 및 빈 statement 정리~~ | ✅ 완료 (변수 제거) |
 | P3 | Assertion 스타일 통일 (`isZero`, `contains`) | - |
 | P3 | 불필요한 import 제거 | - |

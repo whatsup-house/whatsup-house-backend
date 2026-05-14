@@ -174,7 +174,8 @@ class ReviewServiceTest {
     void createReview_forbidden_throwsException() {
         given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.of(application));
 
-        assertThatThrownBy(() -> reviewService.createReview(request, UUID.randomUUID()))
+        UUID randomUserId = UUID.randomUUID();
+        assertThatThrownBy(() -> reviewService.createReview(request, randomUserId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.REVIEW_APPLICATION_FORBIDDEN);
     }
@@ -405,7 +406,8 @@ class ReviewServiceTest {
 
         given(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).willReturn(Optional.of(review));
 
-        assertThatThrownBy(() -> reviewService.deleteReview(reviewId, UUID.randomUUID()))
+        UUID randomUserId = UUID.randomUUID();
+        assertThatThrownBy(() -> reviewService.deleteReview(reviewId, randomUserId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.REVIEW_APPLICATION_FORBIDDEN);
     }

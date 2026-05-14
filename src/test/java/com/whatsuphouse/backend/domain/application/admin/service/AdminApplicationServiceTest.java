@@ -31,8 +31,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -258,7 +256,7 @@ void changeStatus_toCancelled_throwsException() {
                 .relatedId(applicationId).build();
 
         given(applicationRepository.findByIdAndDeletedAtIsNull(applicationId)).willReturn(Optional.of(memberApplication));
-        given(mileageService.rewardAttendance(eq(user), eq(applicationId))).willReturn(history);
+        given(mileageService.rewardAttendance(user, applicationId)).willReturn(history);
         ApplicationStatusRequest request = buildStatusRequest(ApplicationStatus.ATTENDED);
 
         // WHEN
@@ -317,10 +315,9 @@ void changeStatus_toCancelled_throwsException() {
     void deleteApplication_pending_success() {
         // GIVEN
         given(applicationRepository.findById(applicationId)).willReturn(Optional.of(application));
-        UUID id = applicationId;
 
         //WHEN
-        ApplicationDeleteResponse response = adminApplicationService.deleteApplication(id);
+        ApplicationDeleteResponse response = adminApplicationService.deleteApplication(applicationId);
         // THEN
         assertThat(response.getStatus()).isEqualTo(ApplicationStatus.CANCELLED);
     }
@@ -330,11 +327,10 @@ void changeStatus_toCancelled_throwsException() {
     void deleteApplication_alreadyCancelled_idempotent() {
         // GIVEN
         given(applicationRepository.findById(applicationId)).willReturn(Optional.of(application));
-        UUID id = applicationId;
         application.cancel();
 
         //WHEN
-        ApplicationDeleteResponse response = adminApplicationService.deleteApplication(id);
+        ApplicationDeleteResponse response = adminApplicationService.deleteApplication(applicationId);
         // THEN
         assertThat(response.getStatus()).isEqualTo(ApplicationStatus.CANCELLED);
     }
@@ -349,7 +345,7 @@ void changeStatus_toCancelled_throwsException() {
         // WHEN & THEN
         assertThatThrownBy(() -> adminApplicationService.deleteApplication(applicationId))
                 .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CANNOT_DELETE);;
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CANNOT_DELETE);
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────

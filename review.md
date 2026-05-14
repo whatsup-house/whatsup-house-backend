@@ -55,7 +55,7 @@
 
 ## MINOR — 코드 품질 개선
 
-### 테스트 Assertion 개선 (S5838)
+### ~~테스트 Assertion 개선 (S5838)~~ ✅ 수정 완료
 아래 파일에서 `.isEqualTo(0)` 대신 `.isZero()` 사용 권장.
 
 | 파일 | 라인 |
@@ -68,22 +68,22 @@
 | `AdminUserRepositoryTest.java` | 115 |
 | `AdminGatheringServiceTest.java` | 108 |
 
-- `CarouselSlideRepositoryTest.java:119` → `.contains()` 사용 권장
-- `AdminUserRepositoryTest.java:147` → List 비어있는지 먼저 확인 후 assertion (S5841)
+- `CarouselSlideRepositoryTest.java:119` → `.contains()` 사용 권장 ✅ 수정 완료
+- `AdminUserRepositoryTest.java:147` → List 비어있는지 먼저 확인 후 assertion (S5841) ✅ 수정 완료
 
-### 불필요한 import 제거 (S1128)
-- `AdminUserRepositoryTest.java:8` — 같은 패키지 클래스 import 불필요
-- `AdminApplicationServiceTest.java:34` — 미사용 `ArgumentMatchers.any` import
+### ~~불필요한 import 제거 (S1128)~~ ✅ 수정 완료
+- `AdminUserRepositoryTest.java:8` — 같은 패키지 클래스 import 불필요 ✅ 수정 완료
+- `AdminApplicationServiceTest.java:34` — 미사용 `ArgumentMatchers.any` import ✅ 수정 완료
 
-### 미사용 로컬 변수 제거 (S1481)
-- `ApplicationRepositoryTest.java:158, 187` — 미사용 변수 `app1`
-- `AdminApplicationServiceTest.java:347` — 미사용 변수 `id`
+### ~~미사용 로컬 변수 제거 (S1481)~~ ✅ 수정 완료
+- `ApplicationRepositoryTest.java:158, 187` — 미사용 변수 `app1` ✅ 수정 완료
+- `AdminApplicationServiceTest.java:347` — 미사용 변수 `id` ✅ 수정 완료
 
 ### 기타
-- `SupabaseStorageService.java:44` — 하드코딩된 path delimiter `/` → `File.separator` 또는 상수 사용 (S1075)
-- `AdminApplicationServiceTest.java:353` — 빈 statement(세미콜론 단독 줄) 제거 (S1116)
-- `AdminApplicationServiceTest.java:261` — Mockito `eq()` 불필요하게 사용 → 값 직접 전달 (S6068)
-- `AdminCarouselService.java:116` — `Boolean` 박싱 타입 대신 원시 `boolean` 사용 (S5411)
+- `SupabaseStorageService.java:44` — 하드코딩된 path delimiter `/` → 상수 사용 (S1075) ✅ 수정 완료
+- `AdminApplicationServiceTest.java:353` — 빈 statement(세미콜론 단독 줄) 제거 (S1116) ✅ 수정 완료
+- `AdminApplicationServiceTest.java:261` — Mockito `eq()` 불필요하게 사용 → 값 직접 전달 (S6068) ✅ 수정 완료
+- `AdminCarouselService.java:116` — `Boolean` 박싱 타입 대신 원시 `boolean` 사용 (S5411) ✅ 수정 완료
 
 ---
 
@@ -94,5 +94,5 @@
 | ~~P0~~ | ~~`ApplicationService.java:93` — 트랜잭션 우회 버그 수정~~ | ✅ 완료 |
 | ~~P1~~ | ~~`SupabaseStorageService`, `AuthController` 문자열 상수화~~ | ✅ 완료 |
 | ~~P2~~ | ~~테스트 코드 미사용 변수 및 빈 statement 정리~~ | ✅ 완료 (변수 제거) |
-| P3 | Assertion 스타일 통일 (`isZero`, `contains`) | - |
-| P3 | 불필요한 import 제거 | - |
+| ~~P3~~ | ~~Assertion 스타일 통일 (`isZero`, `contains`)~~ | ✅ 완료 |
+| ~~P3~~ | ~~불필요한 import 제거~~ | ✅ 완료 |

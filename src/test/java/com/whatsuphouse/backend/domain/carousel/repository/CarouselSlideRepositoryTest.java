@@ -81,7 +81,7 @@ class CarouselSlideRepositoryTest {
                 carouselSlideRepository.findByIsActiveTrueAndDeletedAtIsNullOrderBySortOrderAscCreatedAtAsc();
 
         assertThat(result).hasSize(3);
-        assertThat(result.get(0).getSortOrder()).isEqualTo(0);
+        assertThat(result.get(0).getSortOrder()).isZero();
         assertThat(result.get(1).getSortOrder()).isEqualTo(1);
         assertThat(result.get(2).getSortOrder()).isEqualTo(2);
     }
@@ -99,9 +99,10 @@ class CarouselSlideRepositoryTest {
         List<CarouselSlide> result =
                 carouselSlideRepository.findByDeletedAtIsNullOrderBySortOrderAscCreatedAtAsc();
 
-        assertThat(result).hasSize(2);
-        assertThat(result).extracting(CarouselSlide::getTitle)
-                .containsExactlyInAnyOrder("활성 슬라이드", "비활성 슬라이드");
+        assertThat(result)
+                .hasSize(2)
+                .extracting(CarouselSlide::getTitle)
+                .contains("활성 슬라이드", "비활성 슬라이드");
     }
 
     @Test

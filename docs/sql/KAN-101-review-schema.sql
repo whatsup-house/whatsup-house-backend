@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS reviews (
     gathering_id UUID NOT NULL REFERENCES gatherings(id),
     review_type VARCHAR(10) NOT NULL DEFAULT 'TEXT',
     review_content TEXT NOT NULL,
-    rating INTEGER NOT NULL,
     like_count INTEGER NOT NULL DEFAULT 0,
     is_home_featured BOOLEAN NOT NULL DEFAULT FALSE,
     home_display_order INTEGER NOT NULL DEFAULT 0,

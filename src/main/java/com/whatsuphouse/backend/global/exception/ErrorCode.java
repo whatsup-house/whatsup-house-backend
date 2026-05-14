@@ -46,6 +46,9 @@ public enum ErrorCode {
 
     // Review
     REVIEW_NOT_FOUND("존재하지 않는 후기입니다.", HttpStatus.NOT_FOUND),
+    REVIEW_ALREADY_EXISTS("이미 작성된 후기입니다.", HttpStatus.CONFLICT),
+    REVIEW_APPLICATION_NOT_ATTENDED("출석 완료된 신청만 후기를 작성할 수 있습니다.", HttpStatus.BAD_REQUEST),
+    REVIEW_APPLICATION_FORBIDDEN("본인의 신청에만 후기를 작성할 수 있습니다.", HttpStatus.FORBIDDEN),
 
     // Room / Item
     ITEM_NOT_FOUND("존재하지 않는 아이템입니다.", HttpStatus.NOT_FOUND),

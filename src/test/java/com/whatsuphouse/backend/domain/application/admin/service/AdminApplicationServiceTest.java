@@ -315,10 +315,9 @@ void changeStatus_toCancelled_throwsException() {
     void deleteApplication_pending_success() {
         // GIVEN
         given(applicationRepository.findById(applicationId)).willReturn(Optional.of(application));
-        UUID id = applicationId;
 
         //WHEN
-        ApplicationDeleteResponse response = adminApplicationService.deleteApplication(id);
+        ApplicationDeleteResponse response = adminApplicationService.deleteApplication(applicationId);
         // THEN
         assertThat(response.getStatus()).isEqualTo(ApplicationStatus.CANCELLED);
     }
@@ -328,11 +327,10 @@ void changeStatus_toCancelled_throwsException() {
     void deleteApplication_alreadyCancelled_idempotent() {
         // GIVEN
         given(applicationRepository.findById(applicationId)).willReturn(Optional.of(application));
-        UUID id = applicationId;
         application.cancel();
 
         //WHEN
-        ApplicationDeleteResponse response = adminApplicationService.deleteApplication(id);
+        ApplicationDeleteResponse response = adminApplicationService.deleteApplication(applicationId);
         // THEN
         assertThat(response.getStatus()).isEqualTo(ApplicationStatus.CANCELLED);
     }

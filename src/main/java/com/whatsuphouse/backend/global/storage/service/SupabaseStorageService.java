@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Service
-public class SupabaseStorageService implements StorageService{
+public class SupabaseStorageService implements StorageService {
 
     private static final Logger log = LoggerFactory.getLogger(SupabaseStorageService.class);
 
@@ -44,7 +44,7 @@ public class SupabaseStorageService implements StorageService{
         }
 
         String fileName = UUID.randomUUID() + "." + extension;
-        String tempPath = "temp" + PATH_SEPARATOR + folder + PATH_SEPARATOR + fileName;
+        String tempPath = String.join(PATH_SEPARATOR, "temp", folder, fileName);
 
         try {
             restClient.put()
@@ -67,8 +67,8 @@ public class SupabaseStorageService implements StorageService{
 
     @Override
     public String move(String tempPath, String targetFolder) {
-        String fileName = tempPath.substring(tempPath.lastIndexOf('/') + 1);
-        String destinationKey = targetFolder + "/" + fileName;
+        String fileName = tempPath.substring(tempPath.lastIndexOf(PATH_SEPARATOR) + 1);
+        String destinationKey = String.join(PATH_SEPARATOR, targetFolder, fileName);
 
         try {
             restClient.post()

@@ -5,7 +5,6 @@ import com.whatsuphouse.backend.domain.application.repository.ApplicationReposit
 import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
 import com.whatsuphouse.backend.domain.gathering.repository.GatheringRepository;
 import com.whatsuphouse.backend.domain.user.entity.User;
-
 import com.whatsuphouse.backend.global.common.enums.Gender;
 import com.whatsuphouse.backend.global.config.TestJpaConfig;
 import org.junit.jupiter.api.BeforeEach;
@@ -142,8 +141,8 @@ class AdminUserRepositoryTest {
 
         Page<UserApplicationStatsProjection> result = userRepository.findUsersWithApplicationStats(null, PageRequest.of(0, 20));
 
-        assertThat(result.getContent()).isNotEmpty();
         assertThat(result.getContent())
+                .isNotEmpty()
                 .extracting(row -> row.user().getEmail())
                 .doesNotContain("deleted@example.com");
     }

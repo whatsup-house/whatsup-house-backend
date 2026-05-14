@@ -6,6 +6,7 @@ import com.whatsuphouse.backend.domain.application.repository.ApplicationReposit
 import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
 import com.whatsuphouse.backend.domain.gathering.repository.GatheringRepository;
 import com.whatsuphouse.backend.domain.review.client.dto.request.ReviewCreateRequest;
+import com.whatsuphouse.backend.domain.review.client.dto.response.HomeReviewResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewDeleteResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewLikeResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewPageResponse;
@@ -407,6 +408,33 @@ class ReviewServiceTest {
         assertThatThrownBy(() -> reviewService.deleteReview(reviewId, UUID.randomUUID()))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.REVIEW_APPLICATION_FORBIDDEN);
+    }
+
+    @Test
+    @DisplayName("홈 노출 리뷰 목록을 노출 순서대로 조회")
+    void listHomeReviews_success() {
+        UUID reviewId = UUID.randomUUID();
+        Review review = buildReview(reviewId, "홈에 노출할 리뷰입니다.");
+        review.updateHomeFeatured(true, 1);
+        ReviewImage image = ReviewImage.builder()
+                .review(review)
+                .imageUrl("https://cdn.example.com/review/home.jpg")
+                .displayOrder(0)
+                .build();
+
+        given(reviewRepository.findByIsHomeFeaturedTrueAndDeletedAtIsNullOrderByHomeDisplayOrderAscCreatedAtDesc())
+                .willReturn(List.of(review));
+        given(reviewImageRepository.findByReviewIdInAndDeletedAtIsNullOrderByDisplayOrderAsc(List.of(reviewId)))
+                .willReturn(List.of(image));
+
+        List<HomeReviewResponse> response = reviewService.listHomeReviews();
+
+        assertThat(response).hasSize(1);
+        assertThat(response.get(0).getReviewId()).isEqualTo(reviewId);
+        assertThat(response.get(0).getNickname()).isEqualTo(user.getNickname());
+        assertThat(response.get(0).getGatheringTitle()).isEqualTo(gathering.getTitle());
+        assertThat(response.get(0).getThumbnailImageUrl()).isEqualTo("https://cdn.example.com/review/home.jpg");
+        assertThat(response.get(0).getHomeDisplayOrder()).isEqualTo(1);
     }
 
     private Review buildReview(UUID reviewId, String content) {

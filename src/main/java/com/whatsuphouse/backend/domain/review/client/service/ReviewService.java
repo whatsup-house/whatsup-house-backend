@@ -4,15 +4,20 @@ import com.whatsuphouse.backend.domain.application.entity.Application;
 import com.whatsuphouse.backend.domain.application.enums.ApplicationStatus;
 import com.whatsuphouse.backend.domain.application.repository.ApplicationRepository;
 import com.whatsuphouse.backend.domain.review.client.dto.request.ReviewCreateRequest;
+import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewLikeResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewPageResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewResponse;
 import com.whatsuphouse.backend.domain.review.entity.Review;
 import com.whatsuphouse.backend.domain.review.entity.ReviewImage;
+import com.whatsuphouse.backend.domain.review.entity.ReviewLike;
 import com.whatsuphouse.backend.domain.review.enums.ReviewSort;
 import com.whatsuphouse.backend.domain.review.enums.ReviewType;
 import com.whatsuphouse.backend.domain.review.repository.ReviewImageRepository;
+import com.whatsuphouse.backend.domain.review.repository.ReviewLikeRepository;
 import com.whatsuphouse.backend.domain.review.repository.ReviewRepository;
 import com.whatsuphouse.backend.domain.gathering.repository.GatheringRepository;
+import com.whatsuphouse.backend.domain.user.entity.User;
+import com.whatsuphouse.backend.domain.user.repository.UserRepository;
 import com.whatsuphouse.backend.global.exception.CustomException;
 import com.whatsuphouse.backend.global.exception.ErrorCode;
 import com.whatsuphouse.backend.global.storage.service.StorageService;
@@ -38,8 +43,10 @@ public class ReviewService {
 
     private final ApplicationRepository applicationRepository;
     private final GatheringRepository gatheringRepository;
+    private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
     private final ReviewImageRepository reviewImageRepository;
+    private final ReviewLikeRepository reviewLikeRepository;
     private final StorageService storageService;
 
     @Transactional
@@ -68,6 +75,19 @@ public class ReviewService {
         return ReviewResponse.of(savedReview, images);
     }
 
+    @Transactional
+    public ReviewLikeResponse toggleLike(UUID reviewId, UUID userId) {
+        Review review = reviewRepository.findByIdAndDeletedAtIsNull(reviewId)
+                .orElseThrow(() -> new CustomException(ErrorCode.REVIEW_NOT_FOUND));
+
+        User user = userRepository.findByIdAndDeletedAtIsNull(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        return reviewLikeRepository.findByReviewIdAndUserId(reviewId, userId)
+                .map(reviewLike -> unlike(review, reviewLike))
+                .orElseGet(() -> like(review, user));
+    }
+
     public ReviewPageResponse getGatheringReviews(UUID gatheringId, ReviewSort sort, int page, int size) {
         if (!gatheringRepository.existsByIdAndDeletedAtIsNull(gatheringId)) {
             throw new CustomException(ErrorCode.GATHERING_NOT_FOUND);
@@ -92,6 +112,21 @@ public class ReviewService {
                 .toList();
 
         return ReviewPageResponse.from(new PageImpl<>(content, pageable, reviewPage.getTotalElements()));
+    }
+
+    private ReviewLikeResponse like(Review review, User user) {
+        reviewLikeRepository.save(ReviewLike.builder()
+                .review(review)
+                .user(user)
+                .build());
+        review.increaseLikeCount();
+        return ReviewLikeResponse.of(review.getId(), true, review.getLikeCount());
+    }
+
+    private ReviewLikeResponse unlike(Review review, ReviewLike reviewLike) {
+        reviewLikeRepository.delete(reviewLike);
+        review.decreaseLikeCount();
+        return ReviewLikeResponse.of(review.getId(), false, review.getLikeCount());
     }
 
     private void validateWritableApplication(Application application, UUID userId) {

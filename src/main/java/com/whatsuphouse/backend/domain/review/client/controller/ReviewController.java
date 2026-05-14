@@ -1,6 +1,7 @@
 package com.whatsuphouse.backend.domain.review.client.controller;
 
 import com.whatsuphouse.backend.domain.review.client.dto.request.ReviewCreateRequest;
+import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewLikeResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewPageResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewResponse;
 import com.whatsuphouse.backend.domain.review.client.service.ReviewService;
@@ -35,6 +36,16 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResult.success("리뷰가 등록되었습니다.",
                         reviewService.createReview(request, principal.getUserId())));
+    }
+
+    @Operation(summary = "리뷰 추천/추천 취소", description = "로그인한 회원이 리뷰를 추천하거나 추천을 취소합니다.")
+    @PostMapping("/api/reviews/{reviewId}/like")
+    public ResponseEntity<ApiResult<ReviewLikeResponse>> toggleLike(
+            @PathVariable UUID reviewId,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        return ResponseEntity.ok(ApiResult.success(
+                reviewService.toggleLike(reviewId, principal.getUserId())));
     }
 
     @Operation(summary = "전체 리뷰 목록 조회", description = "전체 리뷰를 최신순 또는 추천순으로 조회합니다.")

@@ -38,6 +38,15 @@ public class ApplicationService {
 
     @Transactional
     public ApplicationResponse apply(UUID gatheringId, ApplicationRequest request, UUID userId) {
+        return applyInternal(gatheringId, request, userId);
+    }
+
+    @Transactional
+    public ApplicationResponse applyAsGuest(UUID gatheringId, ApplicationRequest request) {
+        return applyInternal(gatheringId, request, null);
+    }
+
+    private ApplicationResponse applyInternal(UUID gatheringId, ApplicationRequest request, UUID userId) {
         Gathering gathering = gatheringRepository.findByIdAndDeletedAtIsNull(gatheringId)
                 .orElseThrow(() -> new CustomException(ErrorCode.GATHERING_NOT_FOUND));
 
@@ -86,11 +95,6 @@ public class ApplicationService {
                 .build();
 
         return ApplicationResponse.from(applicationRepository.save(application));
-    }
-
-    @Transactional
-    public ApplicationResponse applyAsGuest(UUID gatheringId, ApplicationRequest request) {
-        return apply(gatheringId, request, null);
     }
 
     public ApplicationCheckResponse checkApplication(String phone, String bookingNumber) {

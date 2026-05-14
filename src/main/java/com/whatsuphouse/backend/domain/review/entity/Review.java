@@ -52,9 +52,6 @@ public class Review extends BaseEntity {
     @Column(name = "review_content", nullable = false, columnDefinition = "TEXT")
     private String reviewContent;
 
-    @Column(nullable = false)
-    private Integer rating;
-
     @Column(name = "like_count", nullable = false)
     private Integer likeCount = 0;
 
@@ -66,13 +63,12 @@ public class Review extends BaseEntity {
 
     @Builder
     public Review(User user, Application application, Gathering gathering, ReviewType reviewType,
-                  String reviewContent, Integer rating) {
+                  String reviewContent) {
         this.user = user;
         this.application = application;
         this.gathering = gathering;
         this.reviewType = reviewType == null ? ReviewType.TEXT : reviewType;
         this.reviewContent = reviewContent;
-        this.rating = rating;
     }
 
     public void increaseLikeCount() {

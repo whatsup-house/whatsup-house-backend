@@ -26,6 +26,8 @@ public interface GatheringRepository extends JpaRepository<Gathering, UUID> {
 
     Optional<Gathering> findByIdAndDeletedAtIsNull(UUID id);
 
+    boolean existsByIdAndDeletedAtIsNull(UUID id);
+
     @EntityGraph(attributePaths = "location")
     List<Gathering> findByEventDateBetweenAndDeletedAtIsNull(LocalDate from, LocalDate to);
 

@@ -4,10 +4,14 @@ import com.whatsuphouse.backend.domain.application.entity.Application;
 import com.whatsuphouse.backend.domain.application.enums.ApplicationStatus;
 import com.whatsuphouse.backend.domain.application.repository.ApplicationRepository;
 import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
+import com.whatsuphouse.backend.domain.gathering.repository.GatheringRepository;
 import com.whatsuphouse.backend.domain.review.client.dto.request.ReviewCreateRequest;
+import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewPageResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewResponse;
 import com.whatsuphouse.backend.domain.review.client.service.ReviewService;
+import com.whatsuphouse.backend.domain.review.entity.Review;
 import com.whatsuphouse.backend.domain.review.entity.ReviewImage;
+import com.whatsuphouse.backend.domain.review.enums.ReviewSort;
 import com.whatsuphouse.backend.domain.review.enums.ReviewType;
 import com.whatsuphouse.backend.domain.review.repository.ReviewImageRepository;
 import com.whatsuphouse.backend.domain.review.repository.ReviewRepository;
@@ -23,6 +27,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
@@ -33,6 +39,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -41,6 +48,9 @@ class ReviewServiceTest {
 
     @Mock
     private ApplicationRepository applicationRepository;
+
+    @Mock
+    private GatheringRepository gatheringRepository;
 
     @Mock
     private ReviewRepository reviewRepository;
@@ -186,5 +196,72 @@ class ReviewServiceTest {
         assertThatThrownBy(() -> reviewService.createReview(request, userId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.REVIEW_ALREADY_EXISTS);
+    }
+
+    @Test
+    @DisplayName("게더링별 리뷰 목록을 최신순으로 조회")
+    void getGatheringReviews_latest_success() {
+        UUID gatheringId = gathering.getId();
+        Review review = buildReview(UUID.randomUUID(), "최신 리뷰입니다.");
+        ReviewImage image = ReviewImage.builder()
+                .review(review)
+                .imageUrl("https://cdn.example.com/review/image.jpg")
+                .displayOrder(0)
+                .build();
+        ReflectionTestUtils.setField(image, "id", UUID.randomUUID());
+
+        given(gatheringRepository.existsByIdAndDeletedAtIsNull(gatheringId)).willReturn(true);
+        given(reviewRepository.findByGatheringIdAndDeletedAtIsNull(eq(gatheringId), any(Pageable.class)))
+                .willReturn(new PageImpl<>(List.of(review)));
+        given(reviewImageRepository.findByReviewIdInAndDeletedAtIsNullOrderByDisplayOrderAsc(List.of(review.getId())))
+                .willReturn(List.of(image));
+
+        ReviewPageResponse response = reviewService.getGatheringReviews(gatheringId, ReviewSort.LATEST, 0, 10);
+
+        assertThat(response.getContent()).hasSize(1);
+        assertThat(response.getContent().get(0).getReviewContent()).isEqualTo("최신 리뷰입니다.");
+        assertThat(response.getContent().get(0).getImages()).hasSize(1);
+        assertThat(response.getPage()).isZero();
+    }
+
+    @Test
+    @DisplayName("게더링별 리뷰 목록을 추천순으로 조회")
+    void getGatheringReviews_likes_success() {
+        UUID gatheringId = gathering.getId();
+        Review review = buildReview(UUID.randomUUID(), "추천순 리뷰입니다.");
+
+        given(gatheringRepository.existsByIdAndDeletedAtIsNull(gatheringId)).willReturn(true);
+        given(reviewRepository.findByGatheringIdAndDeletedAtIsNull(eq(gatheringId), any(Pageable.class)))
+                .willReturn(new PageImpl<>(List.of(review)));
+        given(reviewImageRepository.findByReviewIdInAndDeletedAtIsNullOrderByDisplayOrderAsc(List.of(review.getId())))
+                .willReturn(List.of());
+
+        ReviewPageResponse response = reviewService.getGatheringReviews(gatheringId, ReviewSort.LIKES, 0, 10);
+
+        assertThat(response.getContent()).hasSize(1);
+        assertThat(response.getContent().get(0).getReviewContent()).isEqualTo("추천순 리뷰입니다.");
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 게더링의 리뷰 목록 조회 시 예외 발생")
+    void getGatheringReviews_gatheringNotFound_throwsException() {
+        UUID gatheringId = UUID.randomUUID();
+        given(gatheringRepository.existsByIdAndDeletedAtIsNull(gatheringId)).willReturn(false);
+
+        assertThatThrownBy(() -> reviewService.getGatheringReviews(gatheringId, ReviewSort.LATEST, 0, 10))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.GATHERING_NOT_FOUND);
+    }
+
+    private Review buildReview(UUID reviewId, String content) {
+        Review review = Review.builder()
+                .user(user)
+                .application(application)
+                .gathering(gathering)
+                .reviewType(ReviewType.TEXT)
+                .reviewContent(content)
+                .build();
+        ReflectionTestUtils.setField(review, "id", reviewId);
+        return review;
     }
 }

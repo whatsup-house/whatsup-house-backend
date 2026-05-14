@@ -9,4 +9,6 @@ import java.util.UUID;
 public interface ReviewImageRepository extends JpaRepository<ReviewImage, UUID> {
 
     List<ReviewImage> findByReviewIdAndDeletedAtIsNullOrderByDisplayOrderAsc(UUID reviewId);
+
+    List<ReviewImage> findByReviewIdInAndDeletedAtIsNullOrderByDisplayOrderAsc(List<UUID> reviewIds);
 }

@@ -4,21 +4,31 @@ import com.whatsuphouse.backend.domain.application.entity.Application;
 import com.whatsuphouse.backend.domain.application.enums.ApplicationStatus;
 import com.whatsuphouse.backend.domain.application.repository.ApplicationRepository;
 import com.whatsuphouse.backend.domain.review.client.dto.request.ReviewCreateRequest;
+import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewPageResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewResponse;
 import com.whatsuphouse.backend.domain.review.entity.Review;
 import com.whatsuphouse.backend.domain.review.entity.ReviewImage;
+import com.whatsuphouse.backend.domain.review.enums.ReviewSort;
 import com.whatsuphouse.backend.domain.review.enums.ReviewType;
 import com.whatsuphouse.backend.domain.review.repository.ReviewImageRepository;
 import com.whatsuphouse.backend.domain.review.repository.ReviewRepository;
+import com.whatsuphouse.backend.domain.gathering.repository.GatheringRepository;
 import com.whatsuphouse.backend.global.exception.CustomException;
 import com.whatsuphouse.backend.global.exception.ErrorCode;
 import com.whatsuphouse.backend.global.storage.service.StorageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Service
@@ -27,6 +37,7 @@ import java.util.stream.IntStream;
 public class ReviewService {
 
     private final ApplicationRepository applicationRepository;
+    private final GatheringRepository gatheringRepository;
     private final ReviewRepository reviewRepository;
     private final ReviewImageRepository reviewImageRepository;
     private final StorageService storageService;
@@ -57,6 +68,22 @@ public class ReviewService {
         return ReviewResponse.of(savedReview, images);
     }
 
+    public ReviewPageResponse getGatheringReviews(UUID gatheringId, ReviewSort sort, int page, int size) {
+        if (!gatheringRepository.existsByIdAndDeletedAtIsNull(gatheringId)) {
+            throw new CustomException(ErrorCode.GATHERING_NOT_FOUND);
+        }
+
+        Pageable pageable = PageRequest.of(page, size, toSort(sort));
+        Page<Review> reviewPage = reviewRepository.findByGatheringIdAndDeletedAtIsNull(gatheringId, pageable);
+        Map<UUID, List<ReviewImage>> imageMap = findImageMap(reviewPage.getContent());
+
+        List<ReviewResponse> content = reviewPage.getContent().stream()
+                .map(review -> ReviewResponse.of(review, imageMap.getOrDefault(review.getId(), List.of())))
+                .toList();
+
+        return ReviewPageResponse.from(new PageImpl<>(content, pageable, reviewPage.getTotalElements()));
+    }
+
     private void validateWritableApplication(Application application, UUID userId) {
         if (application.getUser() == null || !application.getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.REVIEW_APPLICATION_FORBIDDEN);
@@ -84,5 +111,26 @@ public class ReviewService {
                 .toList();
 
         return reviewImageRepository.saveAll(images);
+    }
+
+    private Sort toSort(ReviewSort sort) {
+        if (sort == ReviewSort.LIKES) {
+            return Sort.by(Sort.Order.desc("likeCount"), Sort.Order.desc("createdAt"));
+        }
+        return Sort.by(Sort.Order.desc("createdAt"));
+    }
+
+    private Map<UUID, List<ReviewImage>> findImageMap(List<Review> reviews) {
+        List<UUID> reviewIds = reviews.stream()
+                .map(Review::getId)
+                .toList();
+
+        if (reviewIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return reviewImageRepository.findByReviewIdInAndDeletedAtIsNullOrderByDisplayOrderAsc(reviewIds)
+                .stream()
+                .collect(Collectors.groupingBy(image -> image.getReview().getId()));
     }
 }

@@ -1,6 +1,7 @@
 package com.whatsuphouse.backend.domain.review.client.controller;
 
 import com.whatsuphouse.backend.domain.review.client.dto.request.ReviewCreateRequest;
+import com.whatsuphouse.backend.domain.review.client.dto.request.ReviewUpdateRequest;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewDeleteResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewLikeResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewPageResponse;
@@ -37,6 +38,17 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResult.success("리뷰가 등록되었습니다.",
                         reviewService.createReview(request, principal.getUserId())));
+    }
+
+    @Operation(summary = "내 리뷰 수정", description = "로그인한 회원이 본인이 작성한 리뷰를 수정합니다.")
+    @PatchMapping("/api/reviews/{reviewId}")
+    public ResponseEntity<ApiResult<ReviewResponse>> updateReview(
+            @PathVariable UUID reviewId,
+            @Valid @RequestBody ReviewUpdateRequest request,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        return ResponseEntity.ok(ApiResult.success("리뷰가 수정되었습니다.",
+                reviewService.updateReview(reviewId, request, principal.getUserId())));
     }
 
     @Operation(summary = "리뷰 추천/추천 취소", description = "로그인한 회원이 리뷰를 추천하거나 추천을 취소합니다.")

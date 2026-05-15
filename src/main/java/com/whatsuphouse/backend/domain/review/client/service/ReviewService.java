@@ -3,7 +3,9 @@ package com.whatsuphouse.backend.domain.review.client.service;
 import com.whatsuphouse.backend.domain.application.entity.Application;
 import com.whatsuphouse.backend.domain.application.enums.ApplicationStatus;
 import com.whatsuphouse.backend.domain.application.repository.ApplicationRepository;
+import com.whatsuphouse.backend.domain.mileage.service.MileageService;
 import com.whatsuphouse.backend.domain.review.client.dto.request.ReviewCreateRequest;
+import com.whatsuphouse.backend.domain.review.client.dto.request.ReviewUpdateRequest;
 import com.whatsuphouse.backend.domain.review.client.dto.response.HomeReviewResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewDeleteResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewLikeResponse;
@@ -50,6 +52,7 @@ public class ReviewService {
     private final ReviewImageRepository reviewImageRepository;
     private final ReviewLikeRepository reviewLikeRepository;
     private final StorageService storageService;
+    private final MileageService mileageService;
 
     @Transactional
     public ReviewResponse createReview(ReviewCreateRequest request, UUID userId) {
@@ -73,8 +76,30 @@ public class ReviewService {
 
         Review savedReview = reviewRepository.save(review);
         List<ReviewImage> images = saveImages(savedReview, request.getImageTempPaths());
+        mileageService.rewardReview(application.getUser(), savedReview.getId(), savedReview.getReviewType());
 
         return ReviewResponse.of(savedReview, images);
+    }
+
+    @Transactional
+    public ReviewResponse updateReview(UUID reviewId, ReviewUpdateRequest request, UUID userId) {
+        Review review = reviewRepository.findByIdAndDeletedAtIsNull(reviewId)
+                .orElseThrow(() -> new CustomException(ErrorCode.REVIEW_NOT_FOUND));
+
+        if (!review.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.REVIEW_APPLICATION_FORBIDDEN);
+        }
+
+        ReviewType previousType = review.getReviewType();
+        List<ReviewImage> images = updateImagesIfRequested(review, request.getImageTempPaths());
+        ReviewType updatedType = images.isEmpty() ? ReviewType.TEXT : ReviewType.PHOTO;
+        review.update(request.getReviewContent(), updatedType);
+
+        if (previousType == ReviewType.TEXT && updatedType == ReviewType.PHOTO) {
+            mileageService.rewardReviewUpgradeIfAbsent(review.getUser(), review.getId());
+        }
+
+        return ReviewResponse.of(review, images);
     }
 
     @Transactional
@@ -183,6 +208,18 @@ public class ReviewService {
                 .toList();
 
         return reviewImageRepository.saveAll(images);
+    }
+
+    private List<ReviewImage> updateImagesIfRequested(Review review, List<String> imageTempPaths) {
+        List<ReviewImage> existingImages = reviewImageRepository
+                .findByReviewIdAndDeletedAtIsNullOrderByDisplayOrderAsc(review.getId());
+
+        if (imageTempPaths == null) {
+            return existingImages;
+        }
+
+        existingImages.forEach(ReviewImage::delete);
+        return saveImages(review, imageTempPaths);
     }
 
     private Sort toSort(ReviewSort sort) {

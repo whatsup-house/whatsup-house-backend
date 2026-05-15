@@ -85,4 +85,9 @@ public class Review extends BaseEntity {
         this.isHomeFeatured = isHomeFeatured;
         this.homeDisplayOrder = homeDisplayOrder == null ? 0 : homeDisplayOrder;
     }
+
+    public void update(String reviewContent, ReviewType reviewType) {
+        this.reviewContent = reviewContent;
+        this.reviewType = reviewType == null ? ReviewType.TEXT : reviewType;
+    }
 }

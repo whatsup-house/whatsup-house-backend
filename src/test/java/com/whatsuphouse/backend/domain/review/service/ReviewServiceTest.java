@@ -5,7 +5,9 @@ import com.whatsuphouse.backend.domain.application.enums.ApplicationStatus;
 import com.whatsuphouse.backend.domain.application.repository.ApplicationRepository;
 import com.whatsuphouse.backend.domain.gathering.entity.Gathering;
 import com.whatsuphouse.backend.domain.gathering.repository.GatheringRepository;
+import com.whatsuphouse.backend.domain.mileage.service.MileageService;
 import com.whatsuphouse.backend.domain.review.client.dto.request.ReviewCreateRequest;
+import com.whatsuphouse.backend.domain.review.client.dto.request.ReviewUpdateRequest;
 import com.whatsuphouse.backend.domain.review.client.dto.response.HomeReviewResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewDeleteResponse;
 import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewLikeResponse;
@@ -47,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -72,6 +75,9 @@ class ReviewServiceTest {
 
     @Mock
     private StorageService storageService;
+
+    @Mock
+    private MileageService mileageService;
 
     @InjectMocks
     private ReviewService reviewService;
@@ -134,6 +140,7 @@ class ReviewServiceTest {
         assertThat(response.getReviewContent()).isEqualTo("모임 분위기가 정말 좋았고 다시 참여하고 싶어요.");
         assertThat(response.getImages()).isEmpty();
         assertThat(response.getLikeCount()).isZero();
+        verify(mileageService).rewardReview(user, response.getReviewId(), ReviewType.TEXT);
     }
 
     @Test
@@ -157,6 +164,7 @@ class ReviewServiceTest {
         assertThat(response.getImages().get(0).getDisplayOrder()).isZero();
         assertThat(response.getImages().get(1).getDisplayOrder()).isEqualTo(1);
         verify(reviewImageRepository).saveAll(any());
+        verify(mileageService).rewardReview(user, response.getReviewId(), ReviewType.PHOTO);
     }
 
     @Test
@@ -209,6 +217,91 @@ class ReviewServiceTest {
         assertThatThrownBy(() -> reviewService.createReview(request, userId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.REVIEW_ALREADY_EXISTS);
+    }
+
+    @Test
+    @DisplayName("텍스트 리뷰를 사진 리뷰로 수정하면 업그레이드 마일리지를 지급한다")
+    void updateReview_textToPhoto_rewardsUpgradeMileage() {
+        UUID reviewId = UUID.randomUUID();
+        Review review = buildReview(reviewId, "기존 텍스트 리뷰입니다.");
+        ReviewUpdateRequest updateRequest = new ReviewUpdateRequest();
+        ReflectionTestUtils.setField(updateRequest, "reviewContent", "사진을 추가해서 리뷰를 수정합니다.");
+        ReflectionTestUtils.setField(updateRequest, "imageTempPaths", List.of("temp/review/upgrade.jpg"));
+
+        given(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).willReturn(Optional.of(review));
+        given(reviewImageRepository.findByReviewIdAndDeletedAtIsNullOrderByDisplayOrderAsc(reviewId))
+                .willReturn(List.of());
+        given(storageService.move("temp/review/upgrade.jpg", "review"))
+                .willReturn("https://cdn.example.com/review/upgrade.jpg");
+        given(reviewImageRepository.saveAll(any())).willAnswer(inv -> inv.getArgument(0));
+
+        ReviewResponse response = reviewService.updateReview(reviewId, updateRequest, userId);
+
+        assertThat(response.getReviewType()).isEqualTo(ReviewType.PHOTO);
+        assertThat(response.getReviewContent()).isEqualTo("사진을 추가해서 리뷰를 수정합니다.");
+        assertThat(response.getImages()).hasSize(1);
+        verify(mileageService).rewardReviewUpgradeIfAbsent(user, reviewId);
+    }
+
+    @Test
+    @DisplayName("사진 리뷰를 다시 수정해도 업그레이드 마일리지는 중복 지급하지 않는다")
+    void updateReview_photoToPhoto_doesNotRewardUpgradeMileage() {
+        UUID reviewId = UUID.randomUUID();
+        Review review = buildReview(reviewId, "기존 사진 리뷰입니다.", ReviewType.PHOTO);
+        ReviewImage existingImage = ReviewImage.builder()
+                .review(review)
+                .imageUrl("https://cdn.example.com/review/existing.jpg")
+                .displayOrder(0)
+                .build();
+        ReviewUpdateRequest updateRequest = new ReviewUpdateRequest();
+        ReflectionTestUtils.setField(updateRequest, "reviewContent", "사진 리뷰 내용을 다시 수정합니다.");
+
+        given(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).willReturn(Optional.of(review));
+        given(reviewImageRepository.findByReviewIdAndDeletedAtIsNullOrderByDisplayOrderAsc(reviewId))
+                .willReturn(List.of(existingImage));
+
+        ReviewResponse response = reviewService.updateReview(reviewId, updateRequest, userId);
+
+        assertThat(response.getReviewType()).isEqualTo(ReviewType.PHOTO);
+        assertThat(response.getReviewContent()).isEqualTo("사진 리뷰 내용을 다시 수정합니다.");
+        assertThat(response.getImages()).hasSize(1);
+        verify(mileageService, never()).rewardReviewUpgradeIfAbsent(any(), any());
+    }
+
+    @Test
+    @DisplayName("사진 리뷰를 텍스트로 내렸다가 다시 사진으로 수정해도 리뷰 수정은 성공한다")
+    void updateReview_photoToTextToPhoto_succeedsWithUpgradeRewardSkipPolicy() {
+        UUID reviewId = UUID.randomUUID();
+        Review review = buildReview(reviewId, "기존 사진 리뷰입니다.", ReviewType.PHOTO);
+        ReviewImage existingImage = ReviewImage.builder()
+                .review(review)
+                .imageUrl("https://cdn.example.com/review/existing.jpg")
+                .displayOrder(0)
+                .build();
+        ReviewUpdateRequest textRequest = new ReviewUpdateRequest();
+        ReflectionTestUtils.setField(textRequest, "reviewContent", "사진을 제거하고 텍스트 리뷰로 수정합니다.");
+        ReflectionTestUtils.setField(textRequest, "imageTempPaths", List.of());
+        ReviewUpdateRequest photoRequest = new ReviewUpdateRequest();
+        ReflectionTestUtils.setField(photoRequest, "reviewContent", "다시 사진을 추가해서 리뷰를 수정합니다.");
+        ReflectionTestUtils.setField(photoRequest, "imageTempPaths", List.of("temp/review/reupload.jpg"));
+
+        given(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).willReturn(Optional.of(review));
+        given(reviewImageRepository.findByReviewIdAndDeletedAtIsNullOrderByDisplayOrderAsc(reviewId))
+                .willReturn(List.of(existingImage))
+                .willReturn(List.of());
+        given(storageService.move("temp/review/reupload.jpg", "review"))
+                .willReturn("https://cdn.example.com/review/reupload.jpg");
+        given(reviewImageRepository.saveAll(any())).willAnswer(inv -> inv.getArgument(0));
+
+        ReviewResponse textResponse = reviewService.updateReview(reviewId, textRequest, userId);
+        ReviewResponse photoResponse = reviewService.updateReview(reviewId, photoRequest, userId);
+
+        assertThat(textResponse.getReviewType()).isEqualTo(ReviewType.TEXT);
+        assertThat(textResponse.getImages()).isEmpty();
+        assertThat(existingImage.getDeletedAt()).isNotNull();
+        assertThat(photoResponse.getReviewType()).isEqualTo(ReviewType.PHOTO);
+        assertThat(photoResponse.getImages()).hasSize(1);
+        verify(mileageService).rewardReviewUpgradeIfAbsent(user, reviewId);
     }
 
     @Test
@@ -440,11 +533,15 @@ class ReviewServiceTest {
     }
 
     private Review buildReview(UUID reviewId, String content) {
+        return buildReview(reviewId, content, ReviewType.TEXT);
+    }
+
+    private Review buildReview(UUID reviewId, String content, ReviewType reviewType) {
         Review review = Review.builder()
                 .user(user)
                 .application(application)
                 .gathering(gathering)
-                .reviewType(ReviewType.TEXT)
+                .reviewType(reviewType)
                 .reviewContent(content)
                 .build();
         ReflectionTestUtils.setField(review, "id", reviewId);

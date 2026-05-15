@@ -3,8 +3,11 @@ package com.whatsuphouse.backend.domain.mileage.service;
 import com.whatsuphouse.backend.domain.mileage.entity.MileageHistory;
 import com.whatsuphouse.backend.domain.mileage.enums.MileageType;
 import com.whatsuphouse.backend.domain.mileage.repository.MileageHistoryRepository;
+import com.whatsuphouse.backend.domain.review.enums.ReviewType;
 import com.whatsuphouse.backend.domain.user.entity.User;
 import com.whatsuphouse.backend.global.common.enums.Gender;
+import com.whatsuphouse.backend.global.exception.CustomException;
+import com.whatsuphouse.backend.global.exception.ErrorCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -80,9 +83,89 @@ class MileageServiceTest {
                 .willReturn(true);
 
         assertThatThrownBy(() -> mileageService.rewardSignup(user))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("이미 지급된 마일리지입니다.");
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MILEAGE_ALREADY_REWARDED);
 
+        assertThat(user.getMileageBalance()).isZero();
+        verify(mileageHistoryRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("텍스트 리뷰 작성 마일리지는 500포인트를 지급한다")
+    void rewardReview_text_success() {
+        UUID reviewId = UUID.randomUUID();
+        given(mileageHistoryRepository.existsByUserAndTypeAndRelatedId(user, MileageType.REVIEW_REWARD, reviewId))
+                .willReturn(false);
+        given(mileageHistoryRepository.save(any(MileageHistory.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        mileageService.rewardReview(user, reviewId, ReviewType.TEXT);
+
+        ArgumentCaptor<MileageHistory> captor = ArgumentCaptor.forClass(MileageHistory.class);
+        verify(mileageHistoryRepository).save(captor.capture());
+
+        MileageHistory history = captor.getValue();
+        assertThat(user.getMileageBalance()).isEqualTo(500);
+        assertThat(history.getType()).isEqualTo(MileageType.REVIEW_REWARD);
+        assertThat(history.getAmount()).isEqualTo(500);
+        assertThat(history.getBalanceAfter()).isEqualTo(500);
+        assertThat(history.getRelatedId()).isEqualTo(reviewId);
+    }
+
+    @Test
+    @DisplayName("사진 리뷰 작성 마일리지는 1000포인트를 지급한다")
+    void rewardReview_photo_success() {
+        UUID reviewId = UUID.randomUUID();
+        given(mileageHistoryRepository.existsByUserAndTypeAndRelatedId(user, MileageType.REVIEW_REWARD, reviewId))
+                .willReturn(false);
+        given(mileageHistoryRepository.save(any(MileageHistory.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        mileageService.rewardReview(user, reviewId, ReviewType.PHOTO);
+
+        ArgumentCaptor<MileageHistory> captor = ArgumentCaptor.forClass(MileageHistory.class);
+        verify(mileageHistoryRepository).save(captor.capture());
+
+        MileageHistory history = captor.getValue();
+        assertThat(user.getMileageBalance()).isEqualTo(1000);
+        assertThat(history.getType()).isEqualTo(MileageType.REVIEW_REWARD);
+        assertThat(history.getAmount()).isEqualTo(1000);
+        assertThat(history.getBalanceAfter()).isEqualTo(1000);
+        assertThat(history.getRelatedId()).isEqualTo(reviewId);
+    }
+
+    @Test
+    @DisplayName("텍스트 리뷰를 사진 리뷰로 업그레이드하면 500포인트를 추가 지급한다")
+    void rewardReviewUpgrade_success() {
+        UUID reviewId = UUID.randomUUID();
+        given(mileageHistoryRepository.existsByUserAndTypeAndRelatedId(user, MileageType.REVIEW_UPGRADE, reviewId))
+                .willReturn(false);
+        given(mileageHistoryRepository.save(any(MileageHistory.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        mileageService.rewardReviewUpgrade(user, reviewId);
+
+        ArgumentCaptor<MileageHistory> captor = ArgumentCaptor.forClass(MileageHistory.class);
+        verify(mileageHistoryRepository).save(captor.capture());
+
+        MileageHistory history = captor.getValue();
+        assertThat(user.getMileageBalance()).isEqualTo(500);
+        assertThat(history.getType()).isEqualTo(MileageType.REVIEW_UPGRADE);
+        assertThat(history.getAmount()).isEqualTo(500);
+        assertThat(history.getBalanceAfter()).isEqualTo(500);
+        assertThat(history.getRelatedId()).isEqualTo(reviewId);
+    }
+
+    @Test
+    @DisplayName("이미 업그레이드 마일리지가 지급된 리뷰는 추가 지급하지 않고 스킵한다")
+    void rewardReviewUpgradeIfAbsent_duplicate_skipsReward() {
+        UUID reviewId = UUID.randomUUID();
+        given(mileageHistoryRepository.existsByUserAndTypeAndRelatedId(user, MileageType.REVIEW_UPGRADE, reviewId))
+                .willReturn(true);
+
+        boolean rewarded = mileageService.rewardReviewUpgradeIfAbsent(user, reviewId);
+
+        assertThat(rewarded).isFalse();
         assertThat(user.getMileageBalance()).isZero();
         verify(mileageHistoryRepository, never()).save(any());
     }

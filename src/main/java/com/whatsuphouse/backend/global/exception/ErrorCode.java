@@ -53,6 +53,7 @@ public enum ErrorCode {
     // Room / Item
     ITEM_NOT_FOUND("존재하지 않는 아이템입니다.", HttpStatus.NOT_FOUND),
     MILEAGE_NOT_ENOUGH("마일리지가 부족합니다.", HttpStatus.BAD_REQUEST),
+    MILEAGE_ALREADY_REWARDED("이미 지급된 마일리지입니다.", HttpStatus.CONFLICT),
 
     // Carousel
     SLIDE_NOT_FOUND("존재하지 않는 슬라이드입니다.", HttpStatus.NOT_FOUND),

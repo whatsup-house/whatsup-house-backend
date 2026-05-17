@@ -80,7 +80,7 @@ public class MileageService {
         return mileageHistoryRepository.save(history);
     }
 
-    public MileageHistory adminAdjust(UUID userId, int amount, String adjustReason) {
+    public MileageHistoryResponse adminAdjust(UUID userId, int amount, String adjustReason) {
         User user = findActiveUser(userId);
 
         if (amount == 0) {
@@ -101,7 +101,7 @@ public class MileageService {
                 .adjustReason(adjustReason)
                 .build();
 
-        return mileageHistoryRepository.save(history);
+        return MileageHistoryResponse.from(mileageHistoryRepository.save(history));
     }
 
     @Transactional(readOnly = true)

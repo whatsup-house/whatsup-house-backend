@@ -2,7 +2,6 @@ package com.whatsuphouse.backend.domain.mileage.controller;
 
 import com.whatsuphouse.backend.domain.mileage.dto.request.AdminMileageRequest;
 import com.whatsuphouse.backend.domain.mileage.dto.response.MileageHistoryResponse;
-import com.whatsuphouse.backend.domain.mileage.entity.MileageHistory;
 import com.whatsuphouse.backend.domain.mileage.service.MileageService;
 import com.whatsuphouse.backend.global.common.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,7 +27,7 @@ public class AdminMileageController {
             @PathVariable UUID userId,
             @Valid @RequestBody AdminMileageRequest request
     ) {
-        MileageHistory history = mileageService.adminAdjust(userId, request.getAmount(), request.getAdjustReason());
-        return ResponseEntity.ok(ApiResult.success("마일리지가 조정되었습니다.", MileageHistoryResponse.from(history)));
+        MileageHistoryResponse response = mileageService.adminAdjust(userId, request.getAmount(), request.getAdjustReason());
+        return ResponseEntity.ok(ApiResult.success("마일리지가 조정되었습니다.", response));
     }
 }

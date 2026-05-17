@@ -7,6 +7,7 @@ import com.whatsuphouse.backend.domain.review.admin.dto.request.ReviewHomeOrderI
 import com.whatsuphouse.backend.domain.review.admin.dto.request.ReviewHomeOrderRequest;
 import com.whatsuphouse.backend.domain.review.admin.dto.response.AdminReviewPageResponse;
 import com.whatsuphouse.backend.domain.review.admin.dto.response.AdminReviewResponse;
+import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewDeleteResponse;
 import com.whatsuphouse.backend.domain.review.entity.Review;
 import com.whatsuphouse.backend.domain.review.entity.ReviewImage;
 import com.whatsuphouse.backend.domain.review.enums.ReviewType;
@@ -37,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class AdminReviewServiceTest {
@@ -192,6 +194,41 @@ class AdminReviewServiceTest {
         given(reviewRepository.findAllByIdInAndDeletedAtIsNull(List.of(reviewId))).willReturn(List.of());
 
         assertThatThrownBy(() -> adminReviewService.reorderHomeReviews(request))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.REVIEW_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("관리자가 리뷰를 삭제하면 리뷰와 이미지를 soft delete 처리한다")
+    void deleteReview_success() {
+        UUID reviewId = UUID.randomUUID();
+        Review review = buildReview(reviewId, "관리자가 삭제할 리뷰입니다.");
+        ReviewImage image = ReviewImage.builder()
+                .review(review)
+                .imageUrl("https://cdn.example.com/review/delete.jpg")
+                .displayOrder(0)
+                .build();
+
+        given(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).willReturn(Optional.of(review));
+        given(reviewImageRepository.findByReviewIdAndDeletedAtIsNullOrderByDisplayOrderAsc(reviewId))
+                .willReturn(List.of(image));
+
+        ReviewDeleteResponse response = adminReviewService.deleteReview(reviewId);
+
+        assertThat(response.getReviewId()).isEqualTo(reviewId);
+        assertThat(response.isDeleted()).isTrue();
+        assertThat(review.getDeletedAt()).isNotNull();
+        assertThat(image.getDeletedAt()).isNotNull();
+        verify(reviewImageRepository).findByReviewIdAndDeletedAtIsNullOrderByDisplayOrderAsc(reviewId);
+    }
+
+    @Test
+    @DisplayName("관리자 리뷰 삭제 시 리뷰가 없으면 예외 발생")
+    void deleteReview_reviewNotFound_throwsException() {
+        UUID reviewId = UUID.randomUUID();
+        given(reviewRepository.findByIdAndDeletedAtIsNull(reviewId)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> adminReviewService.deleteReview(reviewId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.REVIEW_NOT_FOUND);
     }

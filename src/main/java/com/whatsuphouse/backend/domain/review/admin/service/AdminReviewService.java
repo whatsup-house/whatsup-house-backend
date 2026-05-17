@@ -4,6 +4,7 @@ import com.whatsuphouse.backend.domain.review.admin.dto.request.ReviewHomeFeatur
 import com.whatsuphouse.backend.domain.review.admin.dto.request.ReviewHomeOrderRequest;
 import com.whatsuphouse.backend.domain.review.admin.dto.response.AdminReviewPageResponse;
 import com.whatsuphouse.backend.domain.review.admin.dto.response.AdminReviewResponse;
+import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewDeleteResponse;
 import com.whatsuphouse.backend.domain.review.entity.Review;
 import com.whatsuphouse.backend.domain.review.entity.ReviewImage;
 import com.whatsuphouse.backend.domain.review.repository.ReviewImageRepository;
@@ -70,6 +71,18 @@ public class AdminReviewService {
             }
             review.updateHomeFeatured(true, item.getHomeDisplayOrder());
         });
+    }
+
+    @Transactional
+    public ReviewDeleteResponse deleteReview(UUID reviewId) {
+        Review review = reviewRepository.findByIdAndDeletedAtIsNull(reviewId)
+                .orElseThrow(() -> new CustomException(ErrorCode.REVIEW_NOT_FOUND));
+
+        review.delete();
+        reviewImageRepository.findByReviewIdAndDeletedAtIsNullOrderByDisplayOrderAsc(reviewId)
+                .forEach(ReviewImage::delete);
+
+        return ReviewDeleteResponse.of(review.getId());
     }
 
     private Map<UUID, List<ReviewImage>> findImageMap(List<Review> reviews) {

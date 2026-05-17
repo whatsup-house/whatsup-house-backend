@@ -94,4 +94,12 @@ public class User extends BaseEntity {
         return this.mileageBalance;
     }
 
+    public Integer deductMileage(int amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("차감 마일리지는 0보다 커야 합니다.");
+        }
+        this.mileageBalance -= amount;
+        return this.mileageBalance;
+    }
+
 }

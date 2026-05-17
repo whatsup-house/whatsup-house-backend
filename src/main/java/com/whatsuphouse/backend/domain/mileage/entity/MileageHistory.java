@@ -38,16 +38,20 @@ public class MileageHistory {
     @Column(name = "related_id")
     private UUID relatedId;
 
+    @Column(name = "adjust_reason", length = 255)
+    private String adjustReason;
+
     @Column(name = "earned_date", nullable = false, updatable = false)
     private LocalDateTime earnedDate;
 
     @Builder
-    public MileageHistory(User user, MileageType type, Integer amount, Integer balanceAfter, UUID relatedId) {
+    public MileageHistory(User user, MileageType type, Integer amount, Integer balanceAfter, UUID relatedId, String adjustReason) {
         this.user = user;
         this.type = type;
         this.amount = amount;
         this.balanceAfter = balanceAfter;
         this.relatedId = relatedId;
+        this.adjustReason = adjustReason;
     }
 
     @PrePersist

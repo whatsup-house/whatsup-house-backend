@@ -4,5 +4,6 @@ public enum MileageType {
     SIGNUP,
     ATTENDANCE,
     REVIEW_REWARD,
-    REVIEW_UPGRADE
+    REVIEW_UPGRADE,
+    ADMIN_ADJUST
 }

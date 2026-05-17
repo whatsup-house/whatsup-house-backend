@@ -80,6 +80,30 @@ public class MileageService {
         return mileageHistoryRepository.save(history);
     }
 
+    public MileageHistory adminAdjust(UUID userId, int amount, String adjustReason) {
+        User user = findActiveUser(userId);
+
+        if (amount == 0) {
+            throw new CustomException(ErrorCode.MILEAGE_ADJUST_AMOUNT_ZERO);
+        }
+
+        if (amount < 0 && user.getMileageBalance() + amount < 0) {
+            throw new CustomException(ErrorCode.MILEAGE_NOT_ENOUGH);
+        }
+
+        Integer balanceAfter = amount > 0 ? user.addMileage(amount) : user.deductMileage(-amount);
+
+        MileageHistory history = MileageHistory.builder()
+                .user(user)
+                .type(MileageType.ADMIN_ADJUST)
+                .amount(amount)
+                .balanceAfter(balanceAfter)
+                .adjustReason(adjustReason)
+                .build();
+
+        return mileageHistoryRepository.save(history);
+    }
+
     @Transactional(readOnly = true)
     public MileageBalanceResponse getMyMileage(UUID userId) {
         User user = findActiveUser(userId);

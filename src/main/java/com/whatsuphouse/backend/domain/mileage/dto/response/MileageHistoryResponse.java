@@ -28,6 +28,9 @@ public class MileageHistoryResponse {
     @Schema(description = "관련 대상 ID")
     private UUID relatedId;
 
+    @Schema(description = "관리자 조정 사유 (ADMIN_ADJUST 타입일 때만 값 존재)")
+    private String adjustReason;
+
     @Schema(description = "적립/차감 일시")
     private LocalDateTime createdAt;
 
@@ -38,6 +41,7 @@ public class MileageHistoryResponse {
                 .amount(history.getAmount())
                 .balanceAfter(history.getBalanceAfter())
                 .relatedId(history.getRelatedId())
+                .adjustReason(history.getAdjustReason())
                 .createdAt(history.getEarnedDate())
                 .build();
     }

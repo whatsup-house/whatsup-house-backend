@@ -1,16 +1,26 @@
 package com.whatsuphouse.backend.domain.mileage.service;
 
+import com.whatsuphouse.backend.domain.mileage.dto.response.MileageBalanceResponse;
+import com.whatsuphouse.backend.domain.mileage.dto.response.MileageHistoryPageResponse;
+import com.whatsuphouse.backend.domain.mileage.dto.response.MileageHistoryResponse;
 import com.whatsuphouse.backend.domain.mileage.entity.MileageHistory;
 import com.whatsuphouse.backend.domain.mileage.enums.MileageType;
 import com.whatsuphouse.backend.domain.mileage.repository.MileageHistoryRepository;
 import com.whatsuphouse.backend.domain.review.enums.ReviewType;
 import com.whatsuphouse.backend.domain.user.entity.User;
+import com.whatsuphouse.backend.domain.user.repository.UserRepository;
 import com.whatsuphouse.backend.global.exception.CustomException;
 import com.whatsuphouse.backend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -25,6 +35,7 @@ public class MileageService {
     public static final int REVIEW_UPGRADE_REWARD_AMOUNT = 500;
 
     private final MileageHistoryRepository mileageHistoryRepository;
+    private final UserRepository userRepository;
 
     public MileageHistory rewardSignup(User user) {
         return earn(user, MileageType.SIGNUP, SIGNUP_REWARD_AMOUNT, user.getId());
@@ -67,5 +78,31 @@ public class MileageService {
                 .build();
 
         return mileageHistoryRepository.save(history);
+    }
+
+    @Transactional(readOnly = true)
+    public MileageBalanceResponse getMyMileage(UUID userId) {
+        User user = findActiveUser(userId);
+        return MileageBalanceResponse.from(user);
+    }
+
+    @Transactional(readOnly = true)
+    public MileageHistoryPageResponse getMyMileageHistory(UUID userId, MileageType type, int page, int size) {
+        findActiveUser(userId);
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "earnedDate"));
+        Page<MileageHistory> historyPage = type == null
+                ? mileageHistoryRepository.findByUserId(userId, pageable)
+                : mileageHistoryRepository.findByUserIdAndType(userId, type, pageable);
+        List<MileageHistoryResponse> content = historyPage.getContent().stream()
+                .map(MileageHistoryResponse::from)
+                .toList();
+
+        return MileageHistoryPageResponse.from(new PageImpl<>(content, pageable, historyPage.getTotalElements()));
+    }
+
+    private User findActiveUser(UUID userId) {
+        return userRepository.findByIdAndDeletedAtIsNull(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 }

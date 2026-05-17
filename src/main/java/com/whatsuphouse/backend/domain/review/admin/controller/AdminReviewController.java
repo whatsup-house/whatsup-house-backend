@@ -4,6 +4,7 @@ import com.whatsuphouse.backend.domain.review.admin.dto.request.ReviewHomeFeatur
 import com.whatsuphouse.backend.domain.review.admin.dto.request.ReviewHomeOrderRequest;
 import com.whatsuphouse.backend.domain.review.admin.dto.response.AdminReviewPageResponse;
 import com.whatsuphouse.backend.domain.review.admin.dto.response.AdminReviewResponse;
+import com.whatsuphouse.backend.domain.review.client.dto.response.ReviewDeleteResponse;
 import com.whatsuphouse.backend.domain.review.admin.service.AdminReviewService;
 import com.whatsuphouse.backend.global.common.ApiResult;
 import io.swagger.v3.oas.annotations.Operation;
@@ -54,5 +55,14 @@ public class AdminReviewController {
     ) {
         adminReviewService.reorderHomeReviews(request);
         return ResponseEntity.ok(ApiResult.success("홈 노출 리뷰 순서가 변경되었습니다.", null));
+    }
+
+    @Operation(summary = "관리자 리뷰 삭제", description = "관리자 권한이 필요합니다.")
+    @DeleteMapping("/{reviewId}")
+    public ResponseEntity<ApiResult<ReviewDeleteResponse>> deleteReview(
+            @PathVariable UUID reviewId
+    ) {
+        return ResponseEntity.ok(ApiResult.success("리뷰가 삭제되었습니다.",
+                adminReviewService.deleteReview(reviewId)));
     }
 }
